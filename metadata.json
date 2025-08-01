@@ -1,0 +1,110 @@
+[
+  {
+    "id": "my-chilhood",
+    "stt": 1,
+    "title": "Câu chuyện về hành trình học tập của tôi",
+    "excerpt": "Câu chuyện về một boiz phố chính hiệu đi tìm cho mình con đường của bản thân. Trải qua rất nhiều con đường vòng để dẫn tới con đường hiện tại.",
+    "date": "August 1, 2025",
+    "author": "Huy Hiep Nguyen",
+    "category": "blog",
+    "tags": ["Tản mạn", "Chuyện đi học", "Việt Nam"],
+    "featured": false,
+    "file": "posts/my-chilhood.html"
+  },
+  {
+    "id": "ai-machine-learning-ai-agent",
+    "stt": 2,
+    "title": "AI, Machine Learning, và AI Agent: Hiểu rõ sự khác biệt",
+    "excerpt": "Tìm hiểu sự khác biệt và mối quan hệ giữa AI, Machine Learning, Deep Learning và AI Agent. Bài viết dành cho người mới bắt đầu với giải thích đơn giản và dễ hiểu.",
+    "date": "January 25, 2025",
+    "author": "Huy Hiep Nguyen",
+    "category": "til",
+    "tags": ["AI", "Machine Learning", "Deep Learning", "AI Agent", "Neural Networks"],
+    "featured": false,
+    "file": "posts/ai-machine-learning-ai-agent.html"
+  },
+  {
+    "id": "nlp-llm-computer-vision",
+    "stt": 3,
+    "title": "NLP, LLM và Computer Vision: Hiểu đúng các khái niệm nền tảng",
+    "excerpt": "Tìm hiểu về NLP, LLM và Computer Vision từ góc nhìn khác về khái niệm machine learning. Hiểu rõ mối quan hệ giữa các lĩnh vực ứng dụng và cách thức học.",
+    "date": "January 25, 2025",
+    "author": "Huy Hiep Nguyen",
+    "category": "til",
+    "tags": ["NLP", "LLM", "Computer Vision", "Machine Learning", "AI", "Deep Learning"],
+    "featured": false,
+    "file": "posts/nlp-llm-computer-vision.html"
+  },
+  {
+    "id": "digital-signal-sampling",
+    "stt": 4,
+    "title": "Tín hiệu số và Lấy mẫu: Cầu nối từ thế giới Analog đến công nghệ Digital",
+    "excerpt": "Tìm hiểu về tín hiệu số và quá trình lấy mẫu - nền tảng cốt lõi của công nghệ số. Từ analog đến digital, hiểu rõ định lý Nyquist và ứng dụng trong Computer Vision.",
+    "date": "January 25, 2025",
+    "author": "Huy Hiep Nguyen",
+    "category": "til",
+    "tags": ["Digital Signal", "Analog Signal", "Sampling", "Nyquist Theorem", "Quantization", "Computer Vision"],
+    "featured": false,
+    "file": "posts/digital-signal-sampling.html"
+  },
+  {
+    "id": "image-editing-processing-vision",
+    "stt": 5,
+    "title": "Image Editing, Image Processing và Computer Vision: Hiểu rõ sự khác biệt",
+    "excerpt": "Tìm hiểu về ba lĩnh vực quan trọng trong xử lý hình ảnh: Chỉnh sửa ảnh, Xử lý ảnh và Thị giác máy tính. Phân biệt rõ mục đích, phương pháp và ứng dụng của từng lĩnh vực.",
+    "date": "January 25, 2025",
+    "author": "Huy Hiep Nguyen",
+    "category": "til",
+    "tags": ["Image Editing", "Image Processing", "Computer Vision", "Digital Image", "Machine Learning", "Deep Learning"],
+    "featured": false,
+    "file": "posts/image-editing-processing-vision.html"
+  },
+  {
+    "id": "signal-transformation-frequency-domain",
+    "stt": 6,
+    "title": "Phép biến đổi tín hiệu từ miền giá trị sang miền tần số",
+    "excerpt": "Tìm hiểu về phép biến đổi tín hiệu từ miền thời gian sang miền tần số thông qua Phép biến đổi Fourier. Hiểu rõ các công thức toán học và ứng dụng thực tế.",
+    "date": "January 25, 2025",
+    "author": "Huy Hiep Nguyen",
+    "category": "til",
+    "tags": ["Signal Processing", "Fourier Transform", "Frequency Domain", "Time Domain", "Digital Signal", "Mathematics"],
+    "featured": false,
+    "file": "posts/signal-transformation-frequency-domain.html"
+  },
+  {
+    "id": "convolution-image-transformations",
+    "stt": 7,
+    "title": "Convolution và các phép biến đổi hình ảnh",
+    "excerpt": "Tìm hiểu về phép toán Convolution - nền tảng của xử lý tín hiệu và hình ảnh. Hiểu rõ các công thức toán học, định lý Convolution và ứng dụng trong Computer Vision.",
+    "date": "January 25, 2025",
+    "author": "Huy Hiep Nguyen",
+    "category": "til",
+    "tags": ["Convolution", "Image Processing", "Signal Processing", "Fourier Transform", "Computer Vision", "Mathematics"],
+    "featured": false,
+    "file": "posts/convolution-image-transformations.html"
+  },
+  {
+    "id": "feature-engineering-image-audio",
+    "stt": 8,
+    "title": "Feature Engineering trong Xử lý Ảnh và Âm thanh: Từ Cổ điển đến Hiện đại",
+    "excerpt": "Khám phá các kỹ thuật feature engineering kinh điển và hiện đại cho xử lý ảnh và âm thanh, từ HOG, SIFT đến MFCC, Spectrogram, và vai trò của chúng trong kỷ nguyên Deep Learning.",
+    "date": "January 26, 2025",
+    "author": "Huy Hiep Nguyen",
+    "category": "til",
+    "tags": ["feature engineering", "computer vision", "audio processing", "machine learning", "deep learning"],
+    "featured": false,
+    "file": "posts/feature-engineering-image-audio.html"
+  },
+  {
+    "id": "feature-engineering-python-p1",
+    "stt": 9,
+    "title": "Feature Engineering trong Python (Phần 1): Pandas, Numpy, và Scikit-learn",
+    "excerpt": "Hướng dẫn chuyên sâu về kỹ thuật đặc trưng (feature engineering) trong Python sử dụng các thư viện mạnh mẽ như Pandas, Numpy, và Scikit-learn, từ xử lý dữ liệu đến chuẩn hóa và tạo đặc trưng.",
+    "date": "January 27, 2025",
+    "author": "Huy Hiep Nguyen",
+    "category": "til",
+    "tags": ["python", "feature engineering", "pandas", "numpy", "scikit-learn", "machine learning"],
+    "featured": false,
+    "file": "posts/feature-engineering-python-p1.html"
+  }
+]

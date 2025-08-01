@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phép biến đổi tín hiệu từ miền giá trị sang miền tần số - Blog của Hiệp</title>
+    <meta name="description" content="Tìm hiểu về phép biến đổi tín hiệu từ miền thời gian sang miền tần số thông qua Phép biến đổi Fourier. Hiểu rõ các công thức toán học và ứng dụng thực tế.">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- MathJax for mathematical formulas -->
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            },
+            svg: {
+                fontCache: 'global'
+            }
+        };
+    </script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #1f1f1f;
+            background-image: 
+                radial-gradient(circle at 25% 25%, rgba(255,255,255,0.04) 0%, transparent 50%),
+                radial-gradient(circle at 75% 75%, rgba(255,255,255,0.04) 0%, transparent 50%);
+            color: #ffffff;
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            flex: 1;
+        }
+        
+        /* Navigation */
+        .nav-back {
+            margin-bottom: 40px;
+        }
+        
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: #64ffda;
+            text-decoration: none;
+            font-weight: 500;
+            padding: 10px 20px;
+            border: 1px solid #64ffda;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+            background: rgba(100, 255, 218, 0.1);
+        }
+        
+        .back-button:hover {
+            background: #64ffda;
+            color: #1f1f1f;
+            transform: translateY(-2px);
+        }
+        
+        /* Post Header */
+        .post-header {
+            margin-bottom: 40px;
+            padding-bottom: 30px;
+            border-bottom: 1px solid #233554;
+        }
+        
+        .post-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .post-date {
+            color: #8892b0;
+            font-size: 0.9rem;
+        }
+        
+        .post-category {
+            background: #64ffda;
+            color: #1f1f1f;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        
+        .post-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 20px;
+            line-height: 1.2;
+        }
+        
+        .post-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .post-tag {
+            background: rgba(100, 255, 218, 0.1);
+            color: #64ffda;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            border: 1px solid rgba(100, 255, 218, 0.2);
+        }
+        
+        .post-author {
+            color: #64ffda;
+            font-weight: 500;
+            font-size: 1.1rem;
+        }
+        
+        /* Post Content */
+        .post-content {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            color: #e6e6e6;
+        }
+        
+        .post-content h1, .post-content h2, .post-content h3, .post-content h4, .post-content h5, .post-content h6 {
+            color: #ffffff;
+            margin: 40px 0 20px 0;
+            font-weight: 600;
+        }
+        
+        .post-content h1 {
+            font-size: 2rem;
+        }
+        
+        .post-content h2 {
+            font-size: 1.8rem;
+        }
+        
+        .post-content h3 {
+            font-size: 1.5rem;
+        }
+        
+        .post-content p {
+            margin-bottom: 20px;
+        }
+        
+        .post-content ul, .post-content ol {
+            margin: 20px 0;
+            padding-left: 30px;
+        }
+        
+        .post-content li {
+            margin-bottom: 10px;
+        }
+        
+        .post-content strong {
+            color: #64ffda;
+            font-weight: 600;
+        }
+        
+        .post-content em {
+            color: #8892b0;
+            font-style: italic;
+        }
+        
+        .post-content hr {
+            border: none;
+            border-top: 1px solid #233554;
+            margin: 40px 0;
+        }
+        
+        .post-content blockquote {
+            border-left: 4px solid #64ffda;
+            padding-left: 20px;
+            margin: 20px 0;
+            color: #8892b0;
+            font-style: italic;
+        }
+        
+        /* Math and Image styles */
+        .math-formula {
+            margin: 20px 0;
+            text-align: center;
+            overflow-x: auto;
+        }
+        
+        .math-formula.inline {
+            display: inline;
+            margin: 0 5px;
+        }
+        
+        .post-image {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            margin: 20px 0;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+        
+        .post-image-container {
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        .post-image-caption {
+            font-size: 0.9rem;
+            color: #8892b0;
+            margin-top: 8px;
+            font-style: italic;
+        }
+        
+        .code-block {
+            background: #1a1a1a;
+            border: 1px solid #233554;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+        
+        .code-block pre {
+            margin: 0;
+            color: #64ffda;
+        }
+        
+        .code-block code {
+            color: #64ffda;
+        }
+        
+        .highlight-box {
+            background: rgba(100, 255, 218, 0.1);
+            border-left: 4px solid #64ffda;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .warning-box {
+            background: rgba(255, 193, 7, 0.1);
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .info-box {
+            background: rgba(13, 202, 240, 0.1);
+            border-left: 4px solid #0dcaf0;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        /* Footer */
+        .footer {
+            background: #1f1f1f;
+            background-image: 
+                radial-gradient(circle at 25% 25%, rgba(255,255,255,0.04) 0%, transparent 50%),
+                radial-gradient(circle at 75% 75%, rgba(255,255,255,0.04) 0%, transparent 50%);
+            border-top: 1px solid rgba(255, 255, 255, 0.03);
+            padding: 40px 0;
+            margin-top: 60px;
+            text-align: center;
+            position: relative;
+            width: 100vw;
+            margin-left: calc(-50vw + 50%);
+        }
+        
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 8vw;
+            text-align: center;
+        }
+        
+        .footer-text {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            align-items: center;
+        }
+        
+        .copyright {
+            font-size: 18px;
+            font-weight: 600;
+            color: #ffffff;
+            letter-spacing: 0.5px;
+        }
+        
+        .tagline {
+            font-size: 16px;
+            color: #888;
+            font-style: italic;
+            margin: 4px 0;
+        }
+        
+        .version {
+            font-size: 14px;
+            color: #666;
+            font-family: 'Courier New', monospace;
+            letter-spacing: 0.3px;
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px 15px;
+            }
+            
+            .post-title {
+                font-size: 2rem;
+            }
+            
+            .post-content {
+                font-size: 1rem;
+            }
+            
+            .post-content h1 {
+                font-size: 1.8rem;
+            }
+            
+            .post-content h2 {
+                font-size: 1.6rem;
+            }
+            
+            .post-content h3 {
+                font-size: 1.4rem;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .post-title {
+                font-size: 1.8rem;
+            }
+            
+            .post-content {
+                font-size: 0.95rem;
+            }
+            
+            .post-content h1 {
+                font-size: 1.6rem;
+            }
+            
+            .post-content h2 {
+                font-size: 1.4rem;
+            }
+            
+            .post-content h3 {
+                font-size: 1.2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Navigation -->
+        <nav class="nav-back">
+            <a href="../index.html" class="back-button">
+                ← Quay lại trang chủ
+            </a>
+        </nav>
+        
+        <!-- Post Header -->
+        <header class="post-header">
+            <div class="post-meta">
+                <span class="post-date">2025-01-25</span>
+                <span class="post-category">TIL</span>
+            </div>
+            
+            <h1 class="post-title">Phép biến đổi tín hiệu từ miền giá trị sang miền tần số</h1>
+            
+            <div class="post-tags">
+                <span class="post-tag">Signal Processing</span><span class="post-tag">Fourier Transform</span><span class="post-tag">Frequency Domain</span><span class="post-tag">Time Domain</span><span class="post-tag">Digital Signal</span><span class="post-tag">Mathematics</span>
+            </div>
+            
+            <div class="post-author">Bởi Huy Hiep Nguyen</div>
+        </header>
+        
+        <!-- Post Content -->
+        <article class="post-content">
+            <h1 id="phep-bien-oi-tin-hieu-tu-mien-gia-tri-sang-mien-tan-so">Phép biến đổi tín hiệu từ miền giá trị sang miền tần số</h1>
+<p>Như chúng ta đã cùng khám phá, thế giới của công nghệ số được xây dựng dựa trên sự biến đổi từ Tín hiệu Analog sang Tín hiệu số. Tiếp đó, chúng ta đi sâu vào cách máy tính 'thấy' và xử lý hình ảnh thông qua các lĩnh vực như Image Editing, Image Processing và Computer Vision. Để có thể hiểu tường tận về các phương pháp xử lý dữ liệu phức tạp trong những lĩnh vực này, chúng ta cần phải tìm hiểu một khái niệm cốt lõi: <strong>Phép biến đổi tín hiệu từ miền giá trị sang miền tần số</strong>.</p>
+<h2 id="1-phep-bien-oi-tin-hieu-tu-mien-gia-tri-en-mien-tan-so">1. Phép biến đổi tín hiệu: Từ miền giá trị đến miền tần số</h2>
+<p>Khi nói về tín hiệu, chúng ta thường nghĩ đến một biểu đồ với trục tung là biên độ (giá trị) và trục hoành là thời gian. Đây chính là <strong>miền giá trị (miền thời gian)</strong>, góc nhìn trực quan nhất về sự thay đổi của tín hiệu. Tuy nhiên, trong nhiều trường hợp, góc nhìn này không đủ để phân tích hoặc xử lý tín hiệu hiệu quả.</p>
+<p>Đó là lúc chúng ta cần đến một góc nhìn khác, một "thế giới" song song: <strong>miền tần số</strong>. Việc chuyển đổi tín hiệu từ miền giá trị sang miền tần số là một trong những khái niệm quan trọng nhất trong kỹ thuật và khoa học máy tính.</p>
+<h2 id="2-hai-goc-nhin-cua-mot-tin-hieu">2. Hai góc nhìn của một tín hiệu</h2>
+<p>Hãy tưởng tượng một bản nhạc. Bạn có thể nhìn bản nhạc đó theo hai cách:</p>
+<h3 id="21-mien-gia-tri-mien-thoi-gian">2.1. Miền giá trị (miền thời gian)</h3>
+<p>Bạn lắng nghe toàn bộ bản nhạc từ đầu đến cuối. Đây là tín hiệu thay đổi liên tục theo thời gian, với các nốt nhạc cao, thấp, to, nhỏ đan xen.</p>
+<h3 id="22-mien-tan-so">2.2. Miền tần số</h3>
+<p>Bạn phân tích bản nhạc đó và nhận ra rằng nó được tạo thành từ những nốt nhạc cụ thể (như Đô, Rê, Mi) với cường độ khác nhau. Đây là cách bạn nhìn vào "tần số" (độ cao thấp của nốt nhạc) và "biên độ" (độ to nhỏ của nốt nhạc).</p>
+<p>Về bản chất, biến đổi miền là quá trình phân tách một tín hiệu phức tạp thành các thành phần tần số cơ bản của nó. Tín hiệu phức tạp trong miền giá trị được biểu diễn dưới dạng một chuỗi các tín hiệu hình sin đơn giản với tần số và biên độ riêng biệt.</p>
+<h2 id="3-phep-bien-oi-fourier-cong-cu-phep-thuat">3. Phép biến đổi Fourier: Công cụ "phép thuật"</h2>
+<p>Công cụ toán học chính để thực hiện quá trình này là <strong>Phép biến đổi Fourier (Fourier Transform)</strong>. Phép biến đổi này có một khả năng đáng kinh ngạc: nó có thể phân tách bất kỳ tín hiệu nào thành tổng của các sóng sin và cosin.</p>
+<h3 id="31-phep-bien-oi-fourier-lien-tuc-continuous-fourier-transform">3.1. Phép biến đổi Fourier liên tục (Continuous Fourier Transform)</h3>
+<p>Đây là công thức được dùng cho các tín hiệu liên tục, thường là tín hiệu analog.</p>
+<h4 id="311-cong-thuc-tu-mien-thoi-gian-sang-mien-tan-so">3.1.1. Công thức từ miền thời gian sang miền tần số:</h4>
+<p>$$F(\omega) = \int_{-\infty}^{\infty} f(t) e^{-j\omega t} dt$$</p>
+<h4 id="312-cong-thuc-bien-oi-nguoc">3.1.2. Công thức biến đổi ngược:</h4>
+<p>$$f(t) = \frac{1}{2\pi} \int_{-\infty}^{\infty} F(\omega) e^{j\omega t} d\omega$$</p>
+<h3 id="32-phep-bien-oi-fourier-roi-rac-discrete-fourier-transform-dft">3.2. Phép biến đổi Fourier rời rạc (Discrete Fourier Transform - DFT)</h3>
+<p>DFT được sử dụng cho các tín hiệu rời rạc, tức là các tín hiệu số mà chúng ta thu được sau quá trình lấy mẫu.</p>
+<h4 id="321-cong-thuc-tu-mien-gia-tri-sang-mien-tan-so">3.2.1. Công thức từ miền giá trị sang miền tần số:</h4>
+<p>$$X_k = \sum_{n=0}^{N-1} x_n e^{-j2\pi nk/N}$$</p>
+<h4 id="322-cong-thuc-bien-oi-nguoc">3.2.2. Công thức biến đổi ngược:</h4>
+<p>$$x_n = \frac{1}{N} \sum_{k=0}^{N-1} X_k e^{j2\pi nk/N}$$</p>
+<h2 id="4-cac-phep-bien-oi-lien-quan">4. Các phép biến đổi liên quan</h2>
+<p>Ngoài Phép biến đổi Fourier, còn có các công cụ toán học khác cũng được sử dụng để phân tích tín hiệu, mỗi công cụ có một mục đích và phạm vi ứng dụng riêng.</p>
+<h3 id="41-phep-bien-oi-laplace-laplace-transform">4.1. Phép biến đổi Laplace (Laplace Transform)</h3>
+<p>Đây là một phép biến đổi tổng quát hơn Phép biến đổi Fourier. Nó không chỉ phân tích tần số mà còn xem xét cả yếu tố tắt dần hay tăng dần của tín hiệu. Phép biến đổi Laplace rất hữu ích trong việc phân tích các hệ thống không ổn định hoặc các mạch điện. Phép biến đổi Fourier liên tục có thể coi là một trường hợp đặc biệt của Phép biến đổi Laplace.</p>
+<h3 id="42-phep-bien-oi-z-z-transform">4.2. Phép biến đổi Z (Z-Transform)</h3>
+<p>Đây là phiên bản rời rạc của Phép biến đổi Laplace. Nó được sử dụng để phân tích các hệ thống và tín hiệu rời rạc. Tương tự, Phép biến đổi Fourier rời rạc (DFT) cũng là một trường hợp đặc biệt của Phép biến đổi Z khi xét trên một vòng tròn đơn vị.</p>
+<h2 id="5-ap-dung-len-tin-hieu-mot-vi-du-truc-quan">5. Áp dụng lên tín hiệu: Một ví dụ trực quan</h2>
+<p>Hãy xem một ví dụ đơn giản với một tín hiệu âm thanh. Giả sử bạn có một tín hiệu âm thanh phức tạp được tạo ra từ hai tín hiệu hình sin đơn giản:</p>
+<ul>
+<li><strong>Một sóng âm có tần số 100 Hz.</strong></li>
+<li><strong>Một sóng âm có tần số 1000 Hz</strong> (đây có thể là tiếng nhiễu).</li>
+<p></ul></p>
+<h3 id="51-trong-mien-gia-tri">5.1. Trong miền giá trị</h3>
+<p>Bạn sẽ thấy một tín hiệu hỗn độn, rất khó để phân biệt hai thành phần.</p>
+<h3 id="52-trong-mien-tan-so">5.2. Trong miền tần số</h3>
+<p>Khi bạn áp dụng Phép biến đổi Fourier, kết quả sẽ là một biểu đồ rất rõ ràng với hai "đỉnh" (spikes) nổi bật. Một đỉnh tại 100 Hz và một đỉnh khác tại 1000 Hz, mỗi đỉnh có chiều cao tương ứng với biên độ của sóng gốc.</p>
+<p>Nhờ biểu đồ này, bạn có thể dễ dàng nhận ra tín hiệu của mình chứa những tần số nào và tần số nào là chủ đạo, tần số nào là nhiễu. Từ đó, bạn có thể dễ dàng xử lý nó, chẳng hạn như lọc bỏ tần số 1000 Hz để loại bỏ tiếng nhiễu.</p>
+<h2 id="6-ung-dung-trong-the-gioi-thuc">6. Ứng dụng trong thế giới thực</h2>
+<p>Việc biến đổi tín hiệu sang miền tần số không chỉ là một khái niệm lý thuyết mà còn là nền tảng của nhiều công nghệ hiện đại:</p>
+<h3 id="61-am-thanh">6.1. Âm thanh</h3>
+<p>Các bộ cân bằng âm thanh (Equalizer) trên điện thoại, máy tính hoạt động bằng cách thay đổi biên độ của các dải tần số khác nhau. Nhờ vậy, chúng ta có thể tăng âm bass (tần số thấp) hoặc treble (tần số cao).</p>
+<h3 id="62-xu-ly-anh">6.2. Xử lý ảnh</h3>
+<p>Trong xử lý ảnh, Phép biến đổi Fourier giúp lọc nhiễu, làm sắc nét ảnh, và là một phần quan trọng trong các thuật toán nén ảnh như JPEG.</p>
+<h3 id="63-vien-thong">6.3. Viễn thông</h3>
+<p>Các kỹ sư sử dụng nó để phân tích, thiết kế các kênh truyền tín hiệu, đảm bảo tín hiệu được truyền đi mà không bị nhiễu.</p>
+<h3 id="64-phan-tich-rung-ong">6.4. Phân tích Rung động</h3>
+<p>Trong cơ khí, Phép biến đổi Fourier được dùng để phân tích tần số rung động của máy móc, giúp phát hiện sớm các hỏng hóc tiềm ẩn.</p>
+<h2 id="7-tom-lai">7. Tóm lại</h2>
+<p>Phép biến đổi Fourier là một công cụ mạnh mẽ, cho phép chúng ta thay đổi góc nhìn về tín hiệu, từ đó hiểu rõ hơn về bản chất của nó và can thiệp một cách chính xác, hiệu quả hơn.</p>
+<hr />
+<p><em>Bài viết này cung cấp cái nhìn tổng quan về phép biến đổi tín hiệu từ miền thời gian sang miền tần số, giúp hiểu rõ các công thức toán học và ứng dụng thực tế trong xử lý tín hiệu.</em> </p>
+        </article>
+    </div>
+    
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-text">
+                <div class="copyright">© 2025 Hiep Nguyen</div>
+                <div class="tagline">Vietnamese soul, global impact</div>
+                <div class="version">Est. 1997 | Version 27.0 (and counting!)</div>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

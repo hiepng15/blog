@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NLP, LLM và Computer Vision: Hiểu đúng các khái niệm nền tảng - Blog của Hiệp</title>
+    <meta name="description" content="Tìm hiểu về NLP, LLM và Computer Vision từ góc nhìn khác về khái niệm machine learning. Hiểu rõ mối quan hệ giữa các lĩnh vực ứng dụng và cách thức học.">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- MathJax for mathematical formulas -->
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            },
+            svg: {
+                fontCache: 'global'
+            }
+        };
+    </script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #1f1f1f;
+            background-image: 
+                radial-gradient(circle at 25% 25%, rgba(255,255,255,0.04) 0%, transparent 50%),
+                radial-gradient(circle at 75% 75%, rgba(255,255,255,0.04) 0%, transparent 50%);
+            color: #ffffff;
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            flex: 1;
+        }
+        
+        /* Navigation */
+        .nav-back {
+            margin-bottom: 40px;
+        }
+        
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: #64ffda;
+            text-decoration: none;
+            font-weight: 500;
+            padding: 10px 20px;
+            border: 1px solid #64ffda;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+            background: rgba(100, 255, 218, 0.1);
+        }
+        
+        .back-button:hover {
+            background: #64ffda;
+            color: #1f1f1f;
+            transform: translateY(-2px);
+        }
+        
+        /* Post Header */
+        .post-header {
+            margin-bottom: 40px;
+            padding-bottom: 30px;
+            border-bottom: 1px solid #233554;
+        }
+        
+        .post-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .post-date {
+            color: #8892b0;
+            font-size: 0.9rem;
+        }
+        
+        .post-category {
+            background: #64ffda;
+            color: #1f1f1f;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        
+        .post-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 20px;
+            line-height: 1.2;
+        }
+        
+        .post-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .post-tag {
+            background: rgba(100, 255, 218, 0.1);
+            color: #64ffda;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            border: 1px solid rgba(100, 255, 218, 0.2);
+        }
+        
+        .post-author {
+            color: #64ffda;
+            font-weight: 500;
+            font-size: 1.1rem;
+        }
+        
+        /* Post Content */
+        .post-content {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            color: #e6e6e6;
+        }
+        
+        .post-content h1, .post-content h2, .post-content h3, .post-content h4, .post-content h5, .post-content h6 {
+            color: #ffffff;
+            margin: 40px 0 20px 0;
+            font-weight: 600;
+        }
+        
+        .post-content h1 {
+            font-size: 2rem;
+        }
+        
+        .post-content h2 {
+            font-size: 1.8rem;
+        }
+        
+        .post-content h3 {
+            font-size: 1.5rem;
+        }
+        
+        .post-content p {
+            margin-bottom: 20px;
+        }
+        
+        .post-content ul, .post-content ol {
+            margin: 20px 0;
+            padding-left: 30px;
+        }
+        
+        .post-content li {
+            margin-bottom: 10px;
+        }
+        
+        .post-content strong {
+            color: #64ffda;
+            font-weight: 600;
+        }
+        
+        .post-content em {
+            color: #8892b0;
+            font-style: italic;
+        }
+        
+        .post-content hr {
+            border: none;
+            border-top: 1px solid #233554;
+            margin: 40px 0;
+        }
+        
+        .post-content blockquote {
+            border-left: 4px solid #64ffda;
+            padding-left: 20px;
+            margin: 20px 0;
+            color: #8892b0;
+            font-style: italic;
+        }
+        
+        /* Math and Image styles */
+        .math-formula {
+            margin: 20px 0;
+            text-align: center;
+            overflow-x: auto;
+        }
+        
+        .math-formula.inline {
+            display: inline;
+            margin: 0 5px;
+        }
+        
+        .post-image {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            margin: 20px 0;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+        
+        .post-image-container {
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        .post-image-caption {
+            font-size: 0.9rem;
+            color: #8892b0;
+            margin-top: 8px;
+            font-style: italic;
+        }
+        
+        .code-block {
+            background: #1a1a1a;
+            border: 1px solid #233554;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+        
+        .code-block pre {
+            margin: 0;
+            color: #64ffda;
+        }
+        
+        .code-block code {
+            color: #64ffda;
+        }
+        
+        .highlight-box {
+            background: rgba(100, 255, 218, 0.1);
+            border-left: 4px solid #64ffda;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .warning-box {
+            background: rgba(255, 193, 7, 0.1);
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .info-box {
+            background: rgba(13, 202, 240, 0.1);
+            border-left: 4px solid #0dcaf0;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        /* Footer */
+        .footer {
+            background: #1f1f1f;
+            background-image: 
+                radial-gradient(circle at 25% 25%, rgba(255,255,255,0.04) 0%, transparent 50%),
+                radial-gradient(circle at 75% 75%, rgba(255,255,255,0.04) 0%, transparent 50%);
+            border-top: 1px solid rgba(255, 255, 255, 0.03);
+            padding: 40px 0;
+            margin-top: 60px;
+            text-align: center;
+            position: relative;
+            width: 100vw;
+            margin-left: calc(-50vw + 50%);
+        }
+        
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 8vw;
+            text-align: center;
+        }
+        
+        .footer-text {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            align-items: center;
+        }
+        
+        .copyright {
+            font-size: 18px;
+            font-weight: 600;
+            color: #ffffff;
+            letter-spacing: 0.5px;
+        }
+        
+        .tagline {
+            font-size: 16px;
+            color: #888;
+            font-style: italic;
+            margin: 4px 0;
+        }
+        
+        .version {
+            font-size: 14px;
+            color: #666;
+            font-family: 'Courier New', monospace;
+            letter-spacing: 0.3px;
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px 15px;
+            }
+            
+            .post-title {
+                font-size: 2rem;
+            }
+            
+            .post-content {
+                font-size: 1rem;
+            }
+            
+            .post-content h1 {
+                font-size: 1.8rem;
+            }
+            
+            .post-content h2 {
+                font-size: 1.6rem;
+            }
+            
+            .post-content h3 {
+                font-size: 1.4rem;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .post-title {
+                font-size: 1.8rem;
+            }
+            
+            .post-content {
+                font-size: 0.95rem;
+            }
+            
+            .post-content h1 {
+                font-size: 1.6rem;
+            }
+            
+            .post-content h2 {
+                font-size: 1.4rem;
+            }
+            
+            .post-content h3 {
+                font-size: 1.2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Navigation -->
+        <nav class="nav-back">
+            <a href="../index.html" class="back-button">
+                ← Quay lại trang chủ
+            </a>
+        </nav>
+        
+        <!-- Post Header -->
+        <header class="post-header">
+            <div class="post-meta">
+                <span class="post-date">2025-01-25</span>
+                <span class="post-category">TIL</span>
+            </div>
+            
+            <h1 class="post-title">NLP, LLM và Computer Vision: Hiểu đúng các khái niệm nền tảng</h1>
+            
+            <div class="post-tags">
+                <span class="post-tag">NLP</span><span class="post-tag">LLM</span><span class="post-tag">Computer Vision</span><span class="post-tag">Machine Learning</span><span class="post-tag">AI</span><span class="post-tag">Deep Learning</span>
+            </div>
+            
+            <div class="post-author">Bởi Huy Hiep Nguyen</div>
+        </header>
+        
+        <!-- Post Content -->
+        <article class="post-content">
+            <h1 id="nlp-llm-va-computer-vision-hieu-ung-cac-khai-niem-nen-tang">NLP, LLM và Computer Vision: Hiểu đúng các khái niệm nền tảng</h1>
+<p>Trong bài viết lần trước, chúng ta đã cùng tìm hiểu về khái niệm của Machine Learning và ba cách thức học cơ bản của nó. Tuy nhiên, đó chỉ là một trong những cách tiếp cận. Hôm nay, chúng ta sẽ nhìn Machine Learning ở một góc độ khác, cụ thể hơn là dựa trên các lĩnh vực ứng dụng nổi bật, bao gồm NLP, LLM và Computer Vision.</p>
+<p>Đây là ba khái niệm cốt lõi, thường xuyên được nhắc đến khi bàn luận về các ứng dụng thực tế của AI. Vậy chúng là gì và khác nhau ra sao? Hãy cùng tìm hiểu qua bài viết này nhé.</p>
+<h2 id="1-phan-loai-machine-learning-hai-goc-nhin-khac-nhau">1. Phân loại Machine Learning: Hai góc nhìn khác nhau</h2>
+<p>Trong Machine Learning, có hai cách chính để phân loại các mô hình, tùy thuộc vào góc nhìn của chúng ta.</p>
+<h3 id="11-phan-loai-theo-cach-thuc-hoc-goc-o-thuat-toan">1.1. Phân loại theo cách thức học (góc độ thuật toán)</h3>
+<p>Đây là cách phân loại cơ bản và mang tính học thuật, dựa trên cách mà mô hình học từ dữ liệu. Dựa vào bản chất của dữ liệu đầu vào và mục tiêu học, chúng ta có 3 loại chính:</p>
+<ul>
+<li>
+<p><strong>Học có giám sát (Supervised Learning)</strong>: Giống như một học sinh có giáo viên. Mô hình được cung cấp dữ liệu đã có "đáp án" (nhãn) và nhiệm vụ của nó là học cách đưa ra đáp án chính xác.</p>
+<p></li></p>
+<li>
+<p><strong>Học không giám sát (Unsupervised Learning)</strong>: Giống như học sinh tự học. Mô hình được cung cấp dữ liệu không có "đáp án" và phải tự tìm ra các cấu trúc, quy luật, hoặc mối liên hệ ẩn bên trong.</p>
+<p></li></p>
+<li>
+<p><strong>Học tăng cường (Reinforcement Learning)</strong>: Giống như một đứa trẻ học qua thử và sai. Mô hình tương tác với môi trường và học cách hành động để nhận được "phần thưởng" cao nhất.</p>
+<p></li></p>
+<p></ul></p>
+<h3 id="12-phan-loai-theo-linh-vuc-ung-dung-goc-o-bai-toan">1.2. Phân loại theo lĩnh vực ứng dụng (góc độ bài toán)</h3>
+<p>Đây là cách phân loại dựa trên loại dữ liệu đầu vào và mục tiêu của bài toán mà AI cần giải quyết. Đây chính là lúc các thuật ngữ như NLP, LLM và Computer Vision xuất hiện.</p>
+<p>Mối quan hệ giữa hai cách phân loại này rất đơn giản: một lĩnh vực ứng dụng sẽ sử dụng một hoặc nhiều cách thức học để giải quyết các bài toán của nó.</p>
+<h2 id="2-hieu-ve-nlp-llm-va-computer-vision">2. Hiểu về NLP, LLM và Computer Vision</h2>
+<h3 id="21-xu-ly-ngon-ngu-tu-nhien-natural-language-processing-nlp">2.1. Xử lý Ngôn ngữ Tự nhiên (Natural Language Processing - NLP)</h3>
+<p>Nếu bạn đang cố gắng trò chuyện với một chiếc máy tính, NLP chính là lĩnh vực của AI giúp máy tính hiểu được bạn.</p>
+<p>NLP là một lĩnh vực rộng lớn, nghiên cứu cách máy tính tương tác với ngôn ngữ tự nhiên của con người. Mục tiêu của NLP là giúp máy tính có thể đọc, giải mã, hiểu và tạo ra ngôn ngữ có ý nghĩa. Các mô hình NLP thường sử dụng thuật toán Học có giám sát hoặc Học không giám sát.</p>
+<p><strong>Một số ứng dụng của NLP:</strong></p>
+<ol>
+<li><strong>Phân tích cảm xúc</strong>: Xác định xem một bài đánh giá sản phẩm là tích cực hay tiêu cực.</li>
+<li><strong>Dịch thuật tự động</strong>: Dịch văn bản từ ngôn ngữ này sang ngôn ngữ khác (ví dụ: Google Translate).</li>
+<li><strong>Tóm tắt văn bản</strong>: Tự động rút gọn một văn bản dài thành các ý chính.</li>
+<li><strong>Chatbot</strong>: Xây dựng các bot trả lời tự động dựa trên câu hỏi của người dùng.</li>
+<p></ol></p>
+<h3 id="22-mo-hinh-ngon-ngu-lon-large-language-model-llm">2.2. Mô hình Ngôn ngữ Lớn (Large Language Model - LLM)</h3>
+<p>Nếu NLP là cả một lĩnh vực rộng lớn, thì LLM là một bước tiến vượt bậc trong lĩnh vực đó. LLM là một loại mô hình học máy tiên tiến, thường sử dụng Deep Learning, được huấn luyện trên một lượng dữ liệu khổng lồ từ Internet. Nhờ vậy, chúng có khả năng hiểu và tạo ra văn bản một cách cực kỳ tự nhiên và phức tạp.</p>
+<p>Bạn có thể coi LLM như một "bộ não" siêu việt được xây dựng để xử lý ngôn ngữ. Ví dụ nổi bật nhất của LLM chính là ChatGPT.</p>
+<p><strong>Mối quan hệ giữa NLP và LLM</strong>: LLM là một loại mô hình của NLP, nhưng ở một cấp độ cao hơn hẳn. Trong khi NLP có thể bao gồm những tác vụ đơn giản, LLM tập trung vào việc tạo ra và hiểu ngôn ngữ ở mức độ sâu hơn nhiều, thường là nhờ sự kết hợp của các thuật toán Học không giám sát và Học có giám sát.</p>
+<h3 id="23-thi-giac-may-tinh-computer-vision">2.3. Thị giác Máy tính (Computer Vision)</h3>
+<p>Nếu NLP và LLM tập trung vào ngôn ngữ, thì Computer Vision là lĩnh vực giúp máy tính "nhìn thấy" và hiểu thế giới qua hình ảnh và video.</p>
+<p>Computer Vision là một lĩnh vực của AI, cho phép máy tính trích xuất, phân tích và hiểu thông tin từ các hình ảnh số. Hầu hết các ứng dụng của Computer Vision đều sử dụng các thuật toán Học có giám sát và Học không giám sát để giải quyết bài toán.</p>
+<p><strong>Một số ứng dụng của Computer Vision:</strong></p>
+<ol>
+<li><strong>Nhận dạng khuôn mặt</strong>: Mở khóa điện thoại bằng khuôn mặt hoặc camera an ninh.</li>
+<li><strong>Xe tự lái</strong>: Nhận biết người đi bộ, đèn giao thông và các phương tiện khác.</li>
+<li><strong>Phân tích hình ảnh y tế</strong>: Giúp bác sĩ phát hiện các dấu hiệu bệnh tật từ ảnh chụp X-quang hoặc MRI.</li>
+<p></ol></p>
+<h2 id="3-ket-luan">3. Kết luận</h2>
+<p>Hy vọng bài viết này đã giúp bạn có một cái nhìn rõ ràng hơn về các khái niệm quan trọng này trong thế giới AI. Việc hiểu được mối quan hệ giữa các cách phân loại Machine Learning và các lĩnh vực ứng dụng cụ thể sẽ giúp bạn có cái nhìn toàn diện hơn về thế giới AI đang phát triển nhanh chóng.</p>
+<hr />
+<p><em>Bài viết này tiếp nối bài viết trước về AI, Machine Learning và AI Agent, cung cấp góc nhìn khác về cách phân loại và ứng dụng của Machine Learning.</em> </p>
+        </article>
+    </div>
+    
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-text">
+                <div class="copyright">© 2025 Hiep Nguyen</div>
+                <div class="tagline">Vietnamese soul, global impact</div>
+                <div class="version">Est. 1997 | Version 27.0 (and counting!)</div>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

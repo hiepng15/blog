@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Xử lý Dữ liệu Chuỗi Thời Gian: Từ Lý thuyết đến Thực hành - Blog của Hiệp</title>
+    <meta name="description" content="Hướng dẫn chuyên sâu về xử lý và dự đoán dữ liệu chuỗi thời gian, từ đặc trưng cơ bản đến các mô hình ARIMA, XGBoost và LSTM với code ví dụ thực tế.">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- MathJax for mathematical formulas -->
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            },
+            svg: {
+                fontCache: 'global'
+            }
+        };
+    </script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #1f1f1f;
+            background-image: 
+                radial-gradient(circle at 25% 25%, rgba(255,255,255,0.04) 0%, transparent 50%),
+                radial-gradient(circle at 75% 75%, rgba(255,255,255,0.04) 0%, transparent 50%);
+            color: #ffffff;
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            flex: 1;
+        }
+        
+        /* Navigation */
+        .nav-back {
+            margin-bottom: 40px;
+        }
+        
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: #64ffda;
+            text-decoration: none;
+            font-weight: 500;
+            padding: 10px 20px;
+            border: 1px solid #64ffda;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+            background: rgba(100, 255, 218, 0.1);
+        }
+        
+        .back-button:hover {
+            background: #64ffda;
+            color: #1f1f1f;
+            transform: translateY(-2px);
+        }
+        
+        /* Post Header */
+        .post-header {
+            margin-bottom: 40px;
+            padding-bottom: 30px;
+            border-bottom: 1px solid #233554;
+        }
+        
+        .post-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .post-date {
+            color: #8892b0;
+            font-size: 0.9rem;
+        }
+        
+        .post-category {
+            background: #64ffda;
+            color: #1f1f1f;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        
+        .post-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 20px;
+            line-height: 1.2;
+        }
+        
+        .post-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .post-tag {
+            background: rgba(100, 255, 218, 0.1);
+            color: #64ffda;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            border: 1px solid rgba(100, 255, 218, 0.2);
+        }
+        
+        .post-author {
+            color: #64ffda;
+            font-weight: 500;
+            font-size: 1.1rem;
+        }
+        
+        /* Post Content */
+        .post-content {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            color: #e6e6e6;
+        }
+        
+        .post-content h1, .post-content h2, .post-content h3, .post-content h4, .post-content h5, .post-content h6 {
+            color: #ffffff;
+            margin: 40px 0 20px 0;
+            font-weight: 600;
+        }
+        
+        .post-content h1 {
+            font-size: 2rem;
+        }
+        
+        .post-content h2 {
+            font-size: 1.8rem;
+        }
+        
+        .post-content h3 {
+            font-size: 1.5rem;
+        }
+        
+        .post-content p {
+            margin-bottom: 20px;
+        }
+        
+        .post-content ul, .post-content ol {
+            margin: 20px 0;
+            padding-left: 30px;
+        }
+        
+        .post-content li {
+            margin-bottom: 10px;
+        }
+        
+        .post-content strong {
+            color: #64ffda;
+            font-weight: 600;
+        }
+        
+        .post-content em {
+            color: #8892b0;
+            font-style: italic;
+        }
+        
+        .post-content hr {
+            border: none;
+            border-top: 1px solid #233554;
+            margin: 40px 0;
+        }
+        
+        .post-content blockquote {
+            border-left: 4px solid #64ffda;
+            padding-left: 20px;
+            margin: 20px 0;
+            color: #8892b0;
+            font-style: italic;
+        }
+        
+        /* Math and Image styles */
+        .math-formula {
+            margin: 20px 0;
+            text-align: center;
+            overflow-x: auto;
+        }
+        
+        .math-formula.inline {
+            display: inline;
+            margin: 0 5px;
+        }
+        
+        .post-image {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            margin: 20px 0;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+        
+        .post-image-container {
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        .post-image-caption {
+            font-size: 0.9rem;
+            color: #8892b0;
+            margin-top: 8px;
+            font-style: italic;
+        }
+        
+        .code-block {
+            background: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            padding: 12px;
+            margin: 16px 0;
+            overflow-x: auto;
+            font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', 'Source Code Pro', monospace;
+            font-size: 0.85rem;
+            line-height: 1.4;
+            position: relative;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+        
+        .code-block::before {
+            content: attr(data-language);
+            position: absolute;
+            top: 0;
+            right: 12px;
+            background: #30363d;
+            color: #8b949e;
+            padding: 2px 8px;
+            font-size: 0.75rem;
+            border-radius: 0 0 4px 4px;
+            text-transform: uppercase;
+            font-weight: 500;
+        }
+        
+        .code-block pre {
+            margin: 0;
+            color: #c9d1d9;
+        }
+        
+        .code-block code {
+            color: #c9d1d9;
+        }
+        
+        /* Syntax highlighting colors */
+        .code-block .keyword {
+            color: #ff7b72;
+        }
+        
+        .code-block .string {
+            color: #a5d6ff;
+        }
+        
+        .code-block .comment {
+            color: #8b949e;
+            font-style: italic;
+        }
+        
+        .code-block .function {
+            color: #d2a8ff;
+        }
+        
+        .code-block .number {
+            color: #79c0ff;
+        }
+        
+        .code-block .operator {
+            color: #ff7b72;
+        }
+        
+        /* Inline code */
+        .post-content code:not(.code-block code) {
+            background: rgba(110, 118, 129, 0.4);
+            color: #c9d1d9;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 0.85em;
+            font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', 'Source Code Pro', monospace;
+        }
+        
+        /* Table Styles */
+        .post-content table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 2rem 0;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .post-content thead {
+            background: rgba(100, 255, 218, 0.1);
+        }
+        
+        .post-content th {
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+            color: #64ffda;
+            border-bottom: 2px solid rgba(100, 255, 218, 0.3);
+        }
+        
+        .post-content td {
+            padding: 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            color: #e0e0e0;
+        }
+        
+        .post-content tr:hover {
+            background: rgba(255, 255, 255, 0.02);
+        }
+        
+        .post-content tbody tr:last-child td {
+            border-bottom: none;
+        }
+        
+        /* Copy button for code blocks */
+        .code-block {
+            position: relative;
+        }
+        
+        .copy-button {
+            position: absolute;
+            top: 8px;
+            right: 40px;
+            background: #30363d;
+            color: #8b949e;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+        
+        .code-block:hover .copy-button {
+            opacity: 1;
+        }
+        
+        .copy-button:hover {
+            background: #484f58;
+            color: #c9d1d9;
+        }
+        
+        /* Line numbers for long code blocks */
+        .code-block.long-code {
+            counter-reset: line;
+        }
+        
+        .code-block.long-code pre {
+            display: flex;
+        }
+        
+        .code-block.long-code code {
+            counter-increment: line;
+            display: block;
+            padding-left: 3.5em;
+            position: relative;
+        }
+        
+        .code-block.long-code code::before {
+            content: counter(line);
+            position: absolute;
+            left: 0;
+            width: 2.5em;
+            text-align: right;
+            color: #484f58;
+            font-size: 0.9em;
+            padding-right: 1em;
+            border-right: 1px solid #30363d;
+        }
+        
+        .highlight-box {
+            background: rgba(100, 255, 218, 0.1);
+            border-left: 4px solid #64ffda;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .warning-box {
+            background: rgba(255, 193, 7, 0.1);
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .info-box {
+            background: rgba(13, 202, 240, 0.1);
+            border-left: 4px solid #0dcaf0;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        /* Footer */
+        .footer {
+            background: #1f1f1f;
+            background-image: 
+                radial-gradient(circle at 25% 25%, rgba(255,255,255,0.04) 0%, transparent 50%),
+                radial-gradient(circle at 75% 75%, rgba(255,255,255,0.04) 0%, transparent 50%);
+            border-top: 1px solid rgba(255, 255, 255, 0.03);
+            padding: 40px 0;
+            margin-top: 60px;
+            text-align: center;
+            position: relative;
+            width: 100vw;
+            margin-left: calc(-50vw + 50%);
+        }
+        
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 8vw;
+            text-align: center;
+        }
+        
+        .footer-text {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            align-items: center;
+        }
+        
+        .copyright {
+            font-size: 18px;
+            font-weight: 600;
+            color: #ffffff;
+            letter-spacing: 0.5px;
+        }
+        
+        .tagline {
+            font-size: 16px;
+            color: #888;
+            font-style: italic;
+            margin: 4px 0;
+        }
+        
+        .version {
+            font-size: 14px;
+            color: #666;
+            font-family: 'Courier New', monospace;
+            letter-spacing: 0.3px;
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px 15px;
+            }
+            
+            .post-title {
+                font-size: 2rem;
+            }
+            
+            .post-content {
+                font-size: 1rem;
+            }
+            
+            .post-content h1 {
+                font-size: 1.8rem;
+            }
+            
+            .post-content h2 {
+                font-size: 1.6rem;
+            }
+            
+            .post-content h3 {
+                font-size: 1.4rem;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .post-title {
+                font-size: 1.8rem;
+            }
+            
+            .post-content {
+                font-size: 0.95rem;
+            }
+            
+            .post-content h1 {
+                font-size: 1.6rem;
+            }
+            
+            .post-content h2 {
+                font-size: 1.4rem;
+            }
+            
+            .post-content h3 {
+                font-size: 1.2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Navigation -->
+        <nav class="nav-back">
+            <a href="../index.html" class="back-button">
+                ← Quay lại trang chủ
+            </a>
+        </nav>
+        
+        <!-- Post Header -->
+        <header class="post-header">
+            <div class="post-meta">
+                <span class="post-date">2025-01-27</span>
+                <span class="post-category">TIL</span>
+            </div>
+            
+            <h1 class="post-title">Xử lý Dữ liệu Chuỗi Thời Gian: Từ Lý thuyết đến Thực hành</h1>
+            
+            <div class="post-tags">
+                <span class="post-tag">time series</span><span class="post-tag">data processing</span><span class="post-tag">arima</span><span class="post-tag">sarima</span><span class="post-tag">xgboost</span><span class="post-tag">lstm</span><span class="post-tag">pandas</span><span class="post-tag">statsmodels</span><span class="post-tag">machine learning</span><span class="post-tag">python</span>
+            </div>
+            
+            <div class="post-author">Bởi Huy Hiep Nguyen</div>
+        </header>
+        
+        <!-- Post Content -->
+        <article class="post-content">
+            <h1 id="xu-ly-du-lieu-chuoi-thoi-gian-tu-ly-thuyet-en-thuc-hanh">Xử lý Dữ liệu Chuỗi Thời Gian: Từ Lý thuyết đến Thực hành</h1>
+<p>Dữ liệu chuỗi thời gian (time series data) là một loại dữ liệu đặc biệt, có mặt ở khắp mọi nơi, từ giá cổ phiếu, doanh số bán hàng, đến dữ liệu cảm biến IoT. Xử lý và dự đoán loại dữ liệu này đòi hỏi một bộ công cụ và tư duy khác biệt so với dữ liệu truyền thống. Điểm mấu chốt là mối quan hệ giữa các điểm dữ liệu không chỉ phụ thuộc vào giá trị mà còn vào <strong>thời gian</strong>.</p>
+<p>Bài viết này sẽ hướng dẫn bạn toàn bộ quy trình làm việc với dữ liệu chuỗi thời gian, từ việc hiểu các đặc điểm của nó cho đến việc xây dựng và đánh giá các mô hình dự đoán mạnh mẽ.</p>
+<h2 id="1-hieu-ac-trung-cua-du-lieu-chuoi-thoi-gian"><strong>1. Hiểu Đặc trưng của Dữ liệu Chuỗi Thời Gian</strong></h2>
+<p>Trước khi bắt tay vào xử lý, bạn cần nắm rõ ba đặc điểm quan trọng của chuỗi thời gian:</p>
+<ul>
+<li><strong>Tính phụ thuộc vào thời gian (Time-dependency):</strong> Giá trị ở thời điểm hiện tại chịu ảnh hưởng bởi các giá trị trong quá khứ.</li>
+<li><strong>Tự tương quan (Autocorrelation):</strong> Mức độ tương quan giữa một chuỗi thời gian với các phiên bản trễ của chính nó. Ví dụ, giá cổ phiếu hôm nay có thể tương quan cao với giá của ngày hôm qua.</li>
+<li><strong>Tính dừng (Stationarity):</strong> Một chuỗi thời gian được coi là dừng nếu các đặc tính thống kê (trung bình, phương sai, tự tương quan) không thay đổi theo thời gian. Đây là một giả định quan trọng đối với nhiều mô hình dự đoán truyền thống.</li>
+<p></ul></p>
+<h2 id="2-tien-xu-ly-va-ky-thuat-feature-engineering"><strong>2. Tiền Xử Lý và Kỹ thuật Feature Engineering</strong></h2>
+<p>Đây là bước quan trọng để biến chuỗi thời gian thô thành một tập dữ liệu phù hợp với các mô hình học máy.</p>
+<h3 id="a-xu-ly-du-lieu-co-ban-voi-pandas"><strong>a. Xử lý Dữ liệu Cơ bản với Pandas</strong></h3>
+<div class="code-block long-code" data-language="python"><button class="copy-button" onclick="copyCode(this)">Copy</button><pre><code>import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Tạo dữ liệu chuỗi thời gian giả
+dates = pd.date_range(start='2023-01-01', periods=100, freq='D')
+values = np.random.randn(100).cumsum() + 50
+df = pd.DataFrame({'date': dates, 'value': values})
+df.set_index('date', inplace=True)
+df.plot(figsize=(12, 6))
+plt.title('Dữ liệu Chuỗi Thời Gian Giả')
+plt.show()
+
+# Resampling: Chuyển dữ liệu hàng ngày thành dữ liệu hàng tuần
+df_weekly = df.resample('W').mean()
+df_weekly.plot(figsize=(12, 6))
+plt.title('Dữ liệu Resampled Hàng Tuần')
+plt.show()
+
+# Rolling Statistics: Tính trung bình trượt và độ lệch chuẩn trượt
+df['rolling_mean'] = df['value'].rolling(window=7).mean()
+df['rolling_std'] = df['value'].rolling(window=7).std()
+df[['value', 'rolling_mean']].plot(figsize=(12, 6))
+plt.title('Trung bình Trượt 7 Ngày')
+plt.show()
+<p></code></pre></div></p>
+<h3 id="b-tao-ac-trung-thoi-gian-timestamp-decomposition"><strong>b. Tạo Đặc trưng Thời gian (Timestamp Decomposition)</strong></h3>
+<p>Các mô hình học máy truyền thống không thể tự nhận biết được "thứ hai" hay "tháng một" là gì. Chúng ta cần trích xuất các thông tin này thành các đặc trưng số.</p>
+<div class="code-block" data-language="python"><button class="copy-button" onclick="copyCode(this)">Copy</button><pre><code># Trích xuất các đặc trưng từ cột index (thời gian)
+df['year'] = df.index.year
+df['month'] = df.index.month
+df['weekday'] = df.index.weekday  # 0 = Thứ Hai, 6 = Chủ Nhật
+df['dayofyear'] = df.index.dayofyear
+print(df.head())
+<p></code></pre></div></p>
+<h3 id="c-phan-ra-xu-huong-va-mua-vu-trend-seasonal-decomposition"><strong>c. Phân rã Xu hướng và Mùa vụ (Trend &amp; Seasonal Decomposition)</strong></h3>
+<p>Phân rã chuỗi thời gian thành ba thành phần: xu hướng (trend), mùa vụ (seasonality), và nhiễu (residual). Kỹ thuật này giúp ta hiểu rõ hơn cấu trúc của dữ liệu và có thể sử dụng các thành phần này làm đặc trưng.</p>
+<div class="code-block" data-language="python"><button class="copy-button" onclick="copyCode(this)">Copy</button><pre><code>from statsmodels.tsa.seasonal import seasonal_decompose
+
+# Phân rã chuỗi thời gian
+decomposition = seasonal_decompose(df['value'], model='additive', period=7)
+decomposition.plot()
+plt.show()
+<p></code></pre></div></p>
+<h2 id="3-xay-dung-va-huan-luyen-mo-hinh-du-oan"><strong>3. Xây dựng và Huấn luyện Mô hình Dự đoán</strong></h2>
+<h3 id="a-mo-hinh-thong-ke-truyen-thong-arimasarima"><strong>a. Mô hình Thống kê Truyền thống: ARIMA/SARIMA</strong></h3>
+<p>Các mô hình như <strong>ARIMA (AutoRegressive Integrated Moving Average)</strong> hoạt động tốt với các chuỗi thời gian có tính dừng. <strong>SARIMA</strong> là phiên bản mở rộng để xử lý các chuỗi có tính mùa vụ.</p>
+<ul>
+<li><strong>ARIMA(p, d, q):</strong></li>
+<li><strong>p:</strong> Số lượng độ trễ (lags) tự hồi quy.</li>
+<li><strong>d:</strong> Số lần lấy sai phân (differencing) để làm cho chuỗi thời gian trở nên dừng.</li>
+<li><strong>q:</strong> Số lượng độ trễ của sai số dự báo.</li>
+<p></ul></p>
+<div class="code-block long-code" data-language="python"><button class="copy-button" onclick="copyCode(this)">Copy</button><pre><code>from statsmodels.tsa.arima.model import ARIMA
+from sklearn.metrics import mean_squared_error
+
+# Chia dữ liệu
+train_size = int(len(df) * 0.8)
+train, test = df['value'][0:train_size], df['value'][train_size:len(df)]
+
+# Huấn luyện mô hình ARIMA
+model = ARIMA(train, order=(1, 1, 1))
+model_fit = model.fit()
+
+# Dự đoán
+predictions = model_fit.forecast(steps=len(test))
+rmse = np.sqrt(mean_squared_error(test, predictions))
+print(f'RMSE của mô hình ARIMA: {rmse:.4f}')
+<p></code></pre></div></p>
+<h3 id="b-mo-hinh-hoc-may-voi-cac-ac-trung-thoi-gian"><strong>b. Mô hình Học máy với các Đặc trưng Thời gian</strong></h3>
+<p>Bạn có thể tận dụng các mô hình học máy mạnh mẽ như <strong>XGBoost</strong> hoặc <strong>LightGBM</strong> bằng cách biến chuỗi thời gian thành một tập dữ liệu có cấu trúc dạng bảng, sử dụng các đặc trưng đã được tạo ở trên.</p>
+<div class="code-block long-code" data-language="python"><button class="copy-button" onclick="copyCode(this)">Copy</button><pre><code>import xgboost as xgb
+
+# Tạo dữ liệu dạng bảng cho XGBoost
+df['lag_1'] = df['value'].shift(1)
+df['moving_avg_3'] = df['value'].rolling(window=3).mean().shift(1)
+df_ml = df.dropna()
+
+# Chia tập dữ liệu theo thời gian
+X = df_ml[['lag_1', 'moving_avg_3', 'year', 'month', 'weekday']]
+y = df_ml['value']
+train_size_ml = int(len(df_ml) * 0.8)
+X_train, X_test = X[0:train_size_ml], X[train_size_ml:len(df_ml)]
+y_train, y_test = y[0:train_size_ml], y[train_size_ml:len(df_ml)]
+
+# Huấn luyện mô hình XGBoost
+model_xgb = xgb.XGBRegressor(n_estimators=100, random_state=42)
+model_xgb.fit(X_train, y_train)
+predictions_xgb = model_xgb.predict(X_test)
+rmse_xgb = np.sqrt(mean_squared_error(y_test, predictions_xgb))
+print(f'RMSE của mô hình XGBoost: {rmse_xgb:.4f}')
+<p></code></pre></div></p>
+<h3 id="c-tuy-chon-hoc-sau-rnnlstm"><strong>c. (Tùy chọn) Học sâu: RNN/LSTM</strong></h3>
+<p>Đối với các chuỗi thời gian có mối quan hệ phụ thuộc phức tạp, các mạng nơ-ron hồi quy như <strong>RNN</strong> và đặc biệt là <strong>LSTM</strong> là một lựa chọn mạnh mẽ. Chúng có khả năng học các mối quan hệ phụ thuộc dài hạn trong dữ liệu.</p>
+<h2 id="4-anh-gia-mo-hinh-can-than-voi-time-dependent-data"><strong>4. Đánh giá Mô hình: Cẩn thận với Time-dependent Data</strong></h2>
+<p>Bạn <strong>không thể</strong> chia dữ liệu chuỗi thời gian một cách ngẫu nhiên như với dữ liệu truyền thống. Luôn phải tuân thủ thứ tự thời gian.</p>
+<ul>
+<li><strong>Train-Test Split theo Thời gian:</strong> Huấn luyện trên các mẫu quá khứ và kiểm tra trên các mẫu tương lai.</li>
+<li><strong>Walk-Forward Validation (Hoặc Rolling-Origin):</strong> Một kỹ thuật đánh giá nâng cao, mô phỏng cách mô hình sẽ hoạt động trong thực tế. Mỗi bước, mô hình được huấn luyện lại trên dữ liệu tích lũy và dự đoán cho bước tiếp theo.</li>
+<p></ul></p>
+<h2 id="ket-luan"><strong>Kết luận</strong></h2>
+<p>Xử lý và dự đoán dữ liệu chuỗi thời gian là một lĩnh vực đầy thách thức nhưng cũng vô cùng hấp dẫn. Với các công cụ như Pandas, Statsmodels và XGBoost, bạn đã có một bộ công cụ mạnh mẽ để bắt đầu. Hiểu rõ các đặc trưng của dữ liệu, áp dụng đúng kỹ thuật tiền xử lý, và lựa chọn mô hình phù hợp sẽ giúp bạn xây dựng các hệ thống dự đoán chính xác và tin cậy. </p>
+        </article>
+    </div>
+    
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-text">
+                <div class="copyright">© 2025 Hiep Nguyen</div>
+                <div class="tagline">Vietnamese soul, global impact</div>
+                <div class="version">Est. 1997 | Version 27.0 (and counting!)</div>
+            </div>
+        </div>
+    </footer>
+    
+    <script>
+        // Copy code functionality
+        function copyCode(button) {
+            const codeBlock = button.parentElement;
+            const code = codeBlock.querySelector('code').textContent;
+            
+            navigator.clipboard.writeText(code).then(function() {
+                // Change button text temporarily
+                const originalText = button.textContent;
+                button.textContent = 'Copied!';
+                button.style.background = '#238636';
+                button.style.color = '#ffffff';
+                
+                setTimeout(function() {
+                    button.textContent = originalText;
+                    button.style.background = '#30363d';
+                    button.style.color = '#8b949e';
+                }, 2000);
+            }).catch(function(err) {
+                console.error('Could not copy text: ', err);
+                button.textContent = 'Failed';
+                button.style.background = '#da3633';
+                button.style.color = '#ffffff';
+            });
+        }
+        
+        // Disable syntax highlighting to avoid conflicts
+        // Code blocks will display with basic styling only
+    </script>
+</body>
+</html>

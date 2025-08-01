@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Editing, Image Processing và Computer Vision: Hiểu rõ sự khác biệt - Blog của Hiệp</title>
+    <meta name="description" content="Tìm hiểu về ba lĩnh vực quan trọng trong xử lý hình ảnh: Chỉnh sửa ảnh, Xử lý ảnh và Thị giác máy tính. Phân biệt rõ mục đích, phương pháp và ứng dụng của từng lĩnh vực.">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- MathJax for mathematical formulas -->
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            },
+            svg: {
+                fontCache: 'global'
+            }
+        };
+    </script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #1f1f1f;
+            background-image: 
+                radial-gradient(circle at 25% 25%, rgba(255,255,255,0.04) 0%, transparent 50%),
+                radial-gradient(circle at 75% 75%, rgba(255,255,255,0.04) 0%, transparent 50%);
+            color: #ffffff;
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            flex: 1;
+        }
+        
+        /* Navigation */
+        .nav-back {
+            margin-bottom: 40px;
+        }
+        
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: #64ffda;
+            text-decoration: none;
+            font-weight: 500;
+            padding: 10px 20px;
+            border: 1px solid #64ffda;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+            background: rgba(100, 255, 218, 0.1);
+        }
+        
+        .back-button:hover {
+            background: #64ffda;
+            color: #1f1f1f;
+            transform: translateY(-2px);
+        }
+        
+        /* Post Header */
+        .post-header {
+            margin-bottom: 40px;
+            padding-bottom: 30px;
+            border-bottom: 1px solid #233554;
+        }
+        
+        .post-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .post-date {
+            color: #8892b0;
+            font-size: 0.9rem;
+        }
+        
+        .post-category {
+            background: #64ffda;
+            color: #1f1f1f;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        
+        .post-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 20px;
+            line-height: 1.2;
+        }
+        
+        .post-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .post-tag {
+            background: rgba(100, 255, 218, 0.1);
+            color: #64ffda;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            border: 1px solid rgba(100, 255, 218, 0.2);
+        }
+        
+        .post-author {
+            color: #64ffda;
+            font-weight: 500;
+            font-size: 1.1rem;
+        }
+        
+        /* Post Content */
+        .post-content {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            color: #e6e6e6;
+        }
+        
+        .post-content h1, .post-content h2, .post-content h3, .post-content h4, .post-content h5, .post-content h6 {
+            color: #ffffff;
+            margin: 40px 0 20px 0;
+            font-weight: 600;
+        }
+        
+        .post-content h1 {
+            font-size: 2rem;
+        }
+        
+        .post-content h2 {
+            font-size: 1.8rem;
+        }
+        
+        .post-content h3 {
+            font-size: 1.5rem;
+        }
+        
+        .post-content p {
+            margin-bottom: 20px;
+        }
+        
+        .post-content ul, .post-content ol {
+            margin: 20px 0;
+            padding-left: 30px;
+        }
+        
+        .post-content li {
+            margin-bottom: 10px;
+        }
+        
+        .post-content strong {
+            color: #64ffda;
+            font-weight: 600;
+        }
+        
+        .post-content em {
+            color: #8892b0;
+            font-style: italic;
+        }
+        
+        .post-content hr {
+            border: none;
+            border-top: 1px solid #233554;
+            margin: 40px 0;
+        }
+        
+        .post-content blockquote {
+            border-left: 4px solid #64ffda;
+            padding-left: 20px;
+            margin: 20px 0;
+            color: #8892b0;
+            font-style: italic;
+        }
+        
+        /* Math and Image styles */
+        .math-formula {
+            margin: 20px 0;
+            text-align: center;
+            overflow-x: auto;
+        }
+        
+        .math-formula.inline {
+            display: inline;
+            margin: 0 5px;
+        }
+        
+        .post-image {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            margin: 20px 0;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+        
+        .post-image-container {
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        .post-image-caption {
+            font-size: 0.9rem;
+            color: #8892b0;
+            margin-top: 8px;
+            font-style: italic;
+        }
+        
+        .code-block {
+            background: #1a1a1a;
+            border: 1px solid #233554;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+        
+        .code-block pre {
+            margin: 0;
+            color: #64ffda;
+        }
+        
+        .code-block code {
+            color: #64ffda;
+        }
+        
+        .highlight-box {
+            background: rgba(100, 255, 218, 0.1);
+            border-left: 4px solid #64ffda;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .warning-box {
+            background: rgba(255, 193, 7, 0.1);
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .info-box {
+            background: rgba(13, 202, 240, 0.1);
+            border-left: 4px solid #0dcaf0;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        /* Footer */
+        .footer {
+            background: #1f1f1f;
+            background-image: 
+                radial-gradient(circle at 25% 25%, rgba(255,255,255,0.04) 0%, transparent 50%),
+                radial-gradient(circle at 75% 75%, rgba(255,255,255,0.04) 0%, transparent 50%);
+            border-top: 1px solid rgba(255, 255, 255, 0.03);
+            padding: 40px 0;
+            margin-top: 60px;
+            text-align: center;
+            position: relative;
+            width: 100vw;
+            margin-left: calc(-50vw + 50%);
+        }
+        
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 8vw;
+            text-align: center;
+        }
+        
+        .footer-text {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            align-items: center;
+        }
+        
+        /* Tables */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid #233554;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        th, td {
+            padding: 12px 16px;
+            text-align: left;
+            border: 1px solid #233554;
+        }
+        
+        th {
+            background: rgba(100, 255, 218, 0.1);
+            color: #64ffda;
+            font-weight: 600;
+            text-align: center;
+        }
+        
+        td {
+            color: #ffffff;
+            vertical-align: top;
+        }
+        
+        tr:nth-child(even) {
+            background: rgba(255, 255, 255, 0.01);
+        }
+        
+        tr:hover {
+            background: rgba(100, 255, 218, 0.05);
+        }
+        
+        .copyright {
+            font-size: 18px;
+            font-weight: 600;
+            color: #ffffff;
+            letter-spacing: 0.5px;
+        }
+        
+        .tagline {
+            font-size: 16px;
+            color: #888;
+            font-style: italic;
+            margin: 4px 0;
+        }
+        
+        .version {
+            font-size: 14px;
+            color: #666;
+            font-family: 'Courier New', monospace;
+            letter-spacing: 0.3px;
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px 15px;
+            }
+            
+            .post-title {
+                font-size: 2rem;
+            }
+            
+            .post-content {
+                font-size: 1rem;
+            }
+            
+            .post-content h1 {
+                font-size: 1.8rem;
+            }
+            
+            .post-content h2 {
+                font-size: 1.6rem;
+            }
+            
+            .post-content h3 {
+                font-size: 1.4rem;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .post-title {
+                font-size: 1.8rem;
+            }
+            
+            .post-content {
+                font-size: 0.95rem;
+            }
+            
+            .post-content h1 {
+                font-size: 1.6rem;
+            }
+            
+            .post-content h2 {
+                font-size: 1.4rem;
+            }
+            
+            .post-content h3 {
+                font-size: 1.2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Navigation -->
+        <nav class="nav-back">
+            <a href="../index.html" class="back-button">
+                ← Quay lại trang chủ
+            </a>
+        </nav>
+        
+        <!-- Post Header -->
+        <header class="post-header">
+            <div class="post-meta">
+                <span class="post-date">2025-01-25</span>
+                <span class="post-category">TIL</span>
+            </div>
+            
+            <h1 class="post-title">Image Editing, Image Processing và Computer Vision: Hiểu rõ sự khác biệt</h1>
+            
+            <div class="post-tags">
+                <span class="post-tag">Image Editing</span><span class="post-tag">Image Processing</span><span class="post-tag">Computer Vision</span><span class="post-tag">Digital Image</span><span class="post-tag">Machine Learning</span><span class="post-tag">Deep Learning</span>
+            </div>
+            
+            <div class="post-author">Bởi Huy Hiep Nguyen</div>
+        </header>
+        
+        <!-- Post Content -->
+        <article class="post-content">
+            <h1 id="image-editing-image-processing-va-computer-vision-hieu-ro-su-khac-biet">Image Editing, Image Processing và Computer Vision: Hiểu rõ sự khác biệt</h1>
+<p>Ở bài viết này, chúng ta sẽ tìm hiểu về những khái niệm liên quan đến hình ảnh, bao gồm <strong>Chỉnh sửa ảnh (Image Editing), Xử lý ảnh (Image Processing) và Thị giác máy tính (Computer Vision)</strong>. Đây là ba lĩnh vực có mối liên hệ chặt chẽ, nhưng lại khác biệt về mục tiêu, phương pháp và ứng dụng.</p>
+<h2 id="1-phan-biet-giong-va-khac-nhau">1. Phân biệt: Giống và khác nhau</h2>
+<p>Để hiểu rõ hơn, chúng ta cần nhận ra rằng cả ba lĩnh vực này đều có chung một nền tảng, nhưng lại phát triển theo những hướng rất khác nhau.</p>
+<ul>
+<li><strong>Điểm giống nhau cốt lõi:</strong> Cả ba đều làm việc với dữ liệu hình ảnh số (digital image), sử dụng các thuật toán cơ bản để thao tác với pixel, và cuối cùng đều nhằm mục đích làm cho thông tin từ hình ảnh trở nên hữu ích hơn.</li>
+<li><strong>Điểm khác biệt mấu chốt:</strong> Sự khác biệt rõ rệt nhất nằm ở <strong>mục đích, vai trò của con người và bản chất của đầu ra</strong>.</li>
+<p></ul></p>
+<table>
+<thead>
+<tr>
+<th>Tiêu chí</th>
+<th>Chỉnh sửa ảnh (Image Editing)</th>
+<th>Xử lý ảnh (Image Processing)</th>
+<th>Thị giác máy tính (Computer Vision)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Mục đích</strong></td>
+<td>Thay đổi hình thức dựa trên ý muốn chủ quan của con người.</td>
+<td>Cải thiện chất lượng hoặc trích xuất đặc trưng cơ bản một cách khách quan.</td>
+<td>Diễn giải, "hiểu" nội dung hình ảnh để đưa ra quyết định hoặc thông tin.</td>
+</tr>
+<tr>
+<td><strong>Vai trò con người</strong></td>
+<td>Là trung tâm, ra quyết định trực tiếp.</td>
+<td>Thiết lập tham số, quá trình sau đó là tự động.</td>
+<td>Chỉ cung cấp mục tiêu. Máy tính tự động phân tích và ra kết quả.</td>
+</tr>
+<tr>
+<td><strong>Bản chất đầu ra</strong></td>
+<td>Luôn là một bức ảnh đã được biến đổi.</td>
+<td>Thường là một bức ảnh được cải thiện hoặc đặc trưng cấp thấp.</td>
+<td>Dữ liệu, thông tin có tính ngữ nghĩa (nhãn, tọa độ).</td>
+</tr>
+</tbody>
+</table>
+<h2 id="2-chinh-sua-anh-image-editing">2. Chỉnh sửa ảnh (Image Editing)</h2>
+<p>Đây là quá trình biến đổi hình ảnh số dưới sự chỉ đạo của con người. Các thuật toán ở đây đóng vai trò là công cụ để thực thi ý đồ của người dùng.</p>
+<h3 id="21-phuong-phap-khoa-hoc-toan-hoc">2.1. Phương pháp khoa học &amp; Toán học</h3>
+<p>Các công cụ chỉnh sửa ảnh sử dụng các thuật toán xử lý tín hiệu số cơ bản để thao tác trên pixel.</p>
+<ul>
+<li><strong>Biến đổi màu sắc:</strong> Dựa trên các mô hình không gian màu như RGB (Red, Green, Blue) hoặc HSV (Hue, Saturation, Value).</li>
+<li><strong>Lọc ảnh cơ bản:</strong> Các bộ lọc làm mờ (blurring), làm sắc nét (sharpening) được áp dụng để làm mịn hoặc nổi bật chi tiết.</li>
+<li><strong>Thao tác hình học:</strong> Các phép biến đổi tuyến tính như cắt (cropping), xoay (rotation) hay thay đổi tỷ lệ (scaling) được thực hiện dựa trên ma trận biến đổi.</li>
+<p></ul></p>
+<h3 id="22-ung-dung-trong-cac-nganh-nghe">2.2. Ứng dụng trong các ngành nghề</h3>
+<ul>
+<li><strong>Truyền thông &amp; Quảng cáo:</strong> Tạo ra các hình ảnh sản phẩm bắt mắt, poster phim.</li>
+<li><strong>Nhiếp ảnh:</strong> Hậu kỳ ảnh cưới, ảnh chân dung, ảnh phong cảnh.</li>
+<li><strong>Thiết kế đồ họa:</strong> Tạo ra các ấn phẩm, logo, và các yếu tố đồ họa.</li>
+<p></ul></p>
+<h2 id="3-xu-ly-anh-image-processing">3. Xử lý ảnh (Image Processing)</h2>
+<p>Đây là lĩnh vực sử dụng các thuật toán toán học để tự động phân tích và biến đổi hình ảnh. Mục tiêu chính là cải thiện chất lượng hoặc trích xuất các đặc trưng cấp thấp một cách khách quan, không phụ thuộc vào thẩm mỹ.</p>
+<h3 id="31-phuong-phap-khoa-hoc-toan-hoc">3.1. Phương pháp khoa học &amp; Toán học</h3>
+<p>Các thuật toán xử lý ảnh có thể được chia thành nhiều nhóm:</p>
+<h4 id="311-loc-khong-gian-spatial-filtering">3.1.1. Lọc không gian (Spatial Filtering)</h4>
+<p>Sử dụng các ma trận (kernels) để thực hiện tích chập (convolution) trên ảnh. Ví dụ:</p>
+<ul>
+<li><strong>Bộ lọc trung bình (Average Filter):</strong> Dùng để làm mờ ảnh.</li>
+<li><strong>Bộ lọc Canny, Sobel:</strong> Dùng để phát hiện các cạnh (edge detection) trong ảnh.</li>
+<p></ul></p>
+<h4 id="312-bien-oi-mien-tan-so-frequency-domain-transformation">3.1.2. Biến đổi miền tần số (Frequency Domain Transformation)</h4>
+<p>Sử dụng <strong>phép biến đổi Fourier (Fourier Transform)</strong> để phân tích tần số của ảnh. Các tần số cao thường đại diện cho nhiễu và chi tiết nhỏ, trong khi các tần số thấp đại diện cho cấu trúc tổng thể. Phương pháp này thường dùng để loại bỏ nhiễu hoặc nén ảnh.</p>
+<h4 id="313-phan-oan-segmentation">3.1.3. Phân đoạn (Segmentation)</h4>
+<p>Phân chia ảnh thành các vùng hoặc đối tượng bằng các thuật toán như phân ngưỡng (thresholding), phân cụm (clustering) hoặc watershed.</p>
+<h3 id="32-ung-dung-trong-cac-nganh-nghe">3.2. Ứng dụng trong các ngành nghề</h3>
+<ul>
+<li><strong>Y tế:</strong> Tăng cường độ tương phản trong ảnh chụp X-quang, CT, MRI.</li>
+<li><strong>Sản xuất:</strong> Hệ thống kiểm tra chất lượng tự động trên dây chuyền sản xuất.</li>
+<li><strong>An ninh:</strong> Cải thiện chất lượng hình ảnh từ camera giám sát bị nhiễu.</li>
+<p></ul></p>
+<h2 id="4-thi-giac-may-tinh-computer-vision">4. Thị giác máy tính (Computer Vision)</h2>
+<p>Đây là lĩnh vực cao cấp nhất, nơi các hệ thống học máy được huấn luyện để "hiểu" và diễn giải nội dung của hình ảnh.</p>
+<h3 id="41-phuong-phap-khoa-hoc-toan-hoc">4.1. Phương pháp khoa học &amp; Toán học</h3>
+<p>Computer Vision hiện đại chủ yếu dựa trên <strong>Machine Learning</strong> và <strong>Deep Learning</strong>, đặc biệt là <strong>Mạng nơ-ron tích chập (Convolutional Neural Networks - CNNs)</strong>.</p>
+<h4 id="411-phan-loai-hinh-anh-image-classification">4.1.1. Phân loại hình ảnh (Image Classification)</h4>
+<p>Dùng các kiến trúc mạng nơ-ron CNN để trích xuất đặc trưng và gán một nhãn cho toàn bộ bức ảnh.</p>
+<h4 id="412-phat-hien-oi-tuong-object-detection">4.1.2. Phát hiện đối tượng (Object Detection)</h4>
+<p>Sử dụng các mô hình phức tạp hơn như YOLO (You Only Look Once) hoặc R-CNN để không chỉ phân loại mà còn xác định vị trí của từng đối tượng.</p>
+<h4 id="413-phan-oan-hinh-anh-image-segmentation">4.1.3. Phân đoạn hình ảnh (Image Segmentation)</h4>
+<p>Phân loại từng pixel trong ảnh để xác định chính xác ranh giới của một đối tượng, thường dùng các kiến trúc mạng nơ-ron dạng encoder-decoder.</p>
+<h3 id="42-ung-dung-trong-cac-nganh-nghe">4.2. Ứng dụng trong các ngành nghề</h3>
+<ul>
+<li><strong>Giao thông:</strong> Xe tự lái để nhận diện biển báo, vạch kẻ đường, người đi bộ.</li>
+<li><strong>Bán lẻ:</strong> Hệ thống thanh toán tự động (Just Walk Out) và phân tích hành vi mua sắm.</li>
+<li><strong>Y tế:</strong> Hỗ trợ bác sĩ chẩn đoán bệnh bằng cách phân tích ảnh chụp CT, MRI.</li>
+<p></ul></p>
+<h2 id="5-tom-lai">5. Tóm lại</h2>
+<p>Từ các thao tác thủ công của <strong>Image Editing</strong> đến các thuật toán tự động của <strong>Image Processing</strong>, và cuối cùng là khả năng "hiểu" phức tạp của <strong>Computer Vision</strong>, chúng ta thấy được một hành trình phát triển mạnh mẽ của khoa học hình ảnh trong kỷ nguyên số.</p>
+<hr />
+<p><em>Bài viết này cung cấp cái nhìn tổng quan về ba lĩnh vực quan trọng trong xử lý hình ảnh, giúp hiểu rõ sự khác biệt và mối liên hệ giữa chúng.</em> </p>
+        </article>
+    </div>
+    
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-text">
+                <div class="copyright">© 2025 Hiep Nguyen</div>
+                <div class="tagline">Vietnamese soul, global impact</div>
+                <div class="version">Est. 1997 | Version 27.0 (and counting!)</div>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Câu chuyện về hành trình học tập của tôi - Blog của Hiệp</title>
+    <meta name="description" content="Câu chuyện về một boiz phố chính hiệu đi tìm cho mình con đường của bản thân. Trải qua rất nhiều con đường vòng để dẫn tới con đường hiện tại.">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- MathJax for mathematical formulas -->
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            },
+            svg: {
+                fontCache: 'global'
+            }
+        };
+    </script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #1f1f1f;
+            background-image: 
+                radial-gradient(circle at 25% 25%, rgba(255,255,255,0.04) 0%, transparent 50%),
+                radial-gradient(circle at 75% 75%, rgba(255,255,255,0.04) 0%, transparent 50%);
+            color: #ffffff;
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            flex: 1;
+        }
+        
+        /* Navigation */
+        .nav-back {
+            margin-bottom: 40px;
+        }
+        
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: #64ffda;
+            text-decoration: none;
+            font-weight: 500;
+            padding: 10px 20px;
+            border: 1px solid #64ffda;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+            background: rgba(100, 255, 218, 0.1);
+        }
+        
+        .back-button:hover {
+            background: #64ffda;
+            color: #1f1f1f;
+            transform: translateY(-2px);
+        }
+        
+        /* Post Header */
+        .post-header {
+            margin-bottom: 40px;
+            padding-bottom: 30px;
+            border-bottom: 1px solid #233554;
+        }
+        
+        .post-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .post-date {
+            color: #8892b0;
+            font-size: 0.9rem;
+        }
+        
+        .post-category {
+            background: #64ffda;
+            color: #1f1f1f;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        
+        .post-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 20px;
+            line-height: 1.2;
+        }
+        
+        .post-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .post-tag {
+            background: rgba(100, 255, 218, 0.1);
+            color: #64ffda;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            border: 1px solid rgba(100, 255, 218, 0.2);
+        }
+        
+        .post-author {
+            color: #64ffda;
+            font-weight: 500;
+            font-size: 1.1rem;
+        }
+        
+        /* Post Content */
+        .post-content {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            color: #e6e6e6;
+        }
+        
+        .post-content h1, .post-content h2, .post-content h3, .post-content h4, .post-content h5, .post-content h6 {
+            color: #ffffff;
+            margin: 40px 0 20px 0;
+            font-weight: 600;
+        }
+        
+        .post-content h1 {
+            font-size: 2rem;
+        }
+        
+        .post-content h2 {
+            font-size: 1.8rem;
+        }
+        
+        .post-content h3 {
+            font-size: 1.5rem;
+        }
+        
+        .post-content p {
+            margin-bottom: 20px;
+        }
+        
+        .post-content ul, .post-content ol {
+            margin: 20px 0;
+            padding-left: 30px;
+        }
+        
+        .post-content li {
+            margin-bottom: 10px;
+        }
+        
+        .post-content strong {
+            color: #64ffda;
+            font-weight: 600;
+        }
+        
+        .post-content em {
+            color: #8892b0;
+            font-style: italic;
+        }
+        
+        .post-content hr {
+            border: none;
+            border-top: 1px solid #233554;
+            margin: 40px 0;
+        }
+        
+        .post-content blockquote {
+            border-left: 4px solid #64ffda;
+            padding-left: 20px;
+            margin: 20px 0;
+            color: #8892b0;
+            font-style: italic;
+        }
+        
+        /* Math and Image styles */
+        .math-formula {
+            margin: 20px 0;
+            text-align: center;
+            overflow-x: auto;
+        }
+        
+        .math-formula.inline {
+            display: inline;
+            margin: 0 5px;
+        }
+        
+        .post-image {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            margin: 20px 0;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+        
+        .post-image-container {
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        .post-image-caption {
+            font-size: 0.9rem;
+            color: #8892b0;
+            margin-top: 8px;
+            font-style: italic;
+        }
+        
+        .code-block {
+            background: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            padding: 12px;
+            margin: 16px 0;
+            overflow-x: auto;
+            font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', 'Source Code Pro', monospace;
+            font-size: 0.85rem;
+            line-height: 1.4;
+            position: relative;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+        
+        .code-block::before {
+            content: attr(data-language);
+            position: absolute;
+            top: 0;
+            right: 12px;
+            background: #30363d;
+            color: #8b949e;
+            padding: 2px 8px;
+            font-size: 0.75rem;
+            border-radius: 0 0 4px 4px;
+            text-transform: uppercase;
+            font-weight: 500;
+        }
+        
+        .code-block pre {
+            margin: 0;
+            color: #c9d1d9;
+        }
+        
+        .code-block code {
+            color: #c9d1d9;
+        }
+        
+        /* Syntax highlighting colors */
+        .code-block .keyword {
+            color: #ff7b72;
+        }
+        
+        .code-block .string {
+            color: #a5d6ff;
+        }
+        
+        .code-block .comment {
+            color: #8b949e;
+            font-style: italic;
+        }
+        
+        .code-block .function {
+            color: #d2a8ff;
+        }
+        
+        .code-block .number {
+            color: #79c0ff;
+        }
+        
+        .code-block .operator {
+            color: #ff7b72;
+        }
+        
+        /* Inline code */
+        .post-content code:not(.code-block code) {
+            background: rgba(110, 118, 129, 0.4);
+            color: #c9d1d9;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 0.85em;
+            font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', 'Source Code Pro', monospace;
+        }
+        
+        /* Table Styles */
+        .post-content table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 2rem 0;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .post-content thead {
+            background: rgba(100, 255, 218, 0.1);
+        }
+        
+        .post-content th {
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+            color: #64ffda;
+            border-bottom: 2px solid rgba(100, 255, 218, 0.3);
+        }
+        
+        .post-content td {
+            padding: 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            color: #e0e0e0;
+        }
+        
+        .post-content tr:hover {
+            background: rgba(255, 255, 255, 0.02);
+        }
+        
+        .post-content tbody tr:last-child td {
+            border-bottom: none;
+        }
+        
+        /* Copy button for code blocks */
+        .code-block {
+            position: relative;
+        }
+        
+        .copy-button {
+            position: absolute;
+            top: 8px;
+            right: 40px;
+            background: #30363d;
+            color: #8b949e;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+        
+        .code-block:hover .copy-button {
+            opacity: 1;
+        }
+        
+        .copy-button:hover {
+            background: #484f58;
+            color: #c9d1d9;
+        }
+        
+        /* Line numbers for long code blocks */
+        .code-block.long-code {
+            counter-reset: line;
+        }
+        
+        .code-block.long-code pre {
+            display: flex;
+        }
+        
+        .code-block.long-code code {
+            counter-increment: line;
+            display: block;
+            padding-left: 3.5em;
+            position: relative;
+        }
+        
+        .code-block.long-code code::before {
+            content: counter(line);
+            position: absolute;
+            left: 0;
+            width: 2.5em;
+            text-align: right;
+            color: #484f58;
+            font-size: 0.9em;
+            padding-right: 1em;
+            border-right: 1px solid #30363d;
+        }
+        
+        .highlight-box {
+            background: rgba(100, 255, 218, 0.1);
+            border-left: 4px solid #64ffda;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .warning-box {
+            background: rgba(255, 193, 7, 0.1);
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .info-box {
+            background: rgba(13, 202, 240, 0.1);
+            border-left: 4px solid #0dcaf0;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        /* Footer */
+        .footer {
+            background: #1f1f1f;
+            background-image: 
+                radial-gradient(circle at 25% 25%, rgba(255,255,255,0.04) 0%, transparent 50%),
+                radial-gradient(circle at 75% 75%, rgba(255,255,255,0.04) 0%, transparent 50%);
+            border-top: 1px solid rgba(255, 255, 255, 0.03);
+            padding: 40px 0;
+            margin-top: 60px;
+            text-align: center;
+            position: relative;
+            width: 100vw;
+            margin-left: calc(-50vw + 50%);
+        }
+        
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 8vw;
+            text-align: center;
+        }
+        
+        .footer-text {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            align-items: center;
+        }
+        
+        .copyright {
+            font-size: 18px;
+            font-weight: 600;
+            color: #ffffff;
+            letter-spacing: 0.5px;
+        }
+        
+        .tagline {
+            font-size: 16px;
+            color: #888;
+            font-style: italic;
+            margin: 4px 0;
+        }
+        
+        .version {
+            font-size: 14px;
+            color: #666;
+            font-family: 'Courier New', monospace;
+            letter-spacing: 0.3px;
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px 15px;
+            }
+            
+            .post-title {
+                font-size: 2rem;
+            }
+            
+            .post-content {
+                font-size: 1rem;
+            }
+            
+            .post-content h1 {
+                font-size: 1.8rem;
+            }
+            
+            .post-content h2 {
+                font-size: 1.6rem;
+            }
+            
+            .post-content h3 {
+                font-size: 1.4rem;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .post-title {
+                font-size: 1.8rem;
+            }
+            
+            .post-content {
+                font-size: 0.95rem;
+            }
+            
+            .post-content h1 {
+                font-size: 1.6rem;
+            }
+            
+            .post-content h2 {
+                font-size: 1.4rem;
+            }
+            
+            .post-content h3 {
+                font-size: 1.2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Navigation -->
+        <nav class="nav-back">
+            <a href="../index.html" class="back-button">
+                ← Quay lại trang chủ
+            </a>
+        </nav>
+        
+        <!-- Post Header -->
+        <header class="post-header">
+            <div class="post-meta">
+                <span class="post-date">2025-08-01</span>
+                <span class="post-category">Blog</span>
+            </div>
+            
+            <h1 class="post-title">Câu chuyện về hành trình học tập của tôi</h1>
+            
+            <div class="post-tags">
+                <span class="post-tag">Tản mạn</span><span class="post-tag">Chuyện đi học</span><span class="post-tag">Việt Nam</span>
+            </div>
+            
+            <div class="post-author">Bởi Huy Hiep Nguyen</div>
+        </header>
+        
+        <!-- Post Content -->
+        <article class="post-content">
+            <h1 id="cau-chuyen-ve-hanh-trinh-hoc-tap-cua-toi">Câu chuyện về hành trình học tập của tôi</h1>
+<p>Trước khi bắt đầu câu chuyện, để bạn có thể dễ dàng theo dõi blog này, mình xin được giới thiệu:
+<p>Mình là Hiệp – phiên bản 27.0 (and counting!!). Có lẽ mình sẽ phải cảnh báo trước, rằng ở blog bên này sẽ là những bài viết mang tính kiểu từ ngữ thông dụng và bỗ bã - hiểu nôm na là nó sẽ không được quá khoa học và đề cao tính giải trí hơn. Hơn nữa mình tự biên soạn và không có sự can thiệp của các Chatbot, nên nó sẽ mang đậm tính tự sự và cá nhân hóa hơn. Còn phía bên TILs thực chất là những phiên bản tổng hợp kiến thức mình sưu tầm được, do trong quá trình học tập mình được biết và mình thống kê, chắt lọc được thông tin và sắp xếp theo thứ tự để các bạn có thể dễ đọc thay vì tìm hiểu những chủ đề không có đích đến. </p></p>
+<p>Vì thực sự thế giới của khoa học hay Machine Learning là một chủ đề rất rất rộng. </p>
+<p>Mình viết blog này để tìm kiếm sự kết nối, để chia sẻ những trải nghiệm, kinh nghiệm và mớ kiến thức mình góp nhặt được trên đường đời.
+<p>Nhưng thật ra, đôi khi chỉ đơn giản là mình muốn được viết – viết ra những điều mình nghĩ, dù cho có hơi lảm nhảm đi chăng nữa.</p>
+<p>Nếu bạn có thời gian dừng lại và đọc, cảm ơn và chúc bạn một ngày tốt lành nhé !!!</p></p>
+<h2 id="moi-thu-co-le-khong-nhu-nhung-gi-mot-ua-tre-nghi">Mọi thứ có lẽ không như những gì một đứa trẻ nghĩ</h2>
+<p>Ở một thị trấn có tên Xuân Hòa – nơi tôi sinh ra, lớn lên và bắt đầu những trải nghiệm đầu đời.
+<p>Nơi tuổi thơ tôi gắn liền với những địa danh như đồi Thằn Lằn, với hồ Đại Lải; những buổi sáng cùng lũ bạn trong xóm dậy từ 4 giờ sáng để đi tập thể dục và đá bóng trên đường phố như những đứa trẻ ở Brazil có lẽ là những trải nghiệm tôi không bao giờ quên được.</p>
+<p>Chỉ khác một điều: sau khi tập thể dục xong, chúng tôi sẽ ăn những thứ nhiều chất béo nhất có thể … rồi ngủ một giấc tới tận trưa thôi :))  </p></p>
+<p>Ở cái thời đó với tôi ước mơ lớn nhất (thậm chí đến tận lúc học lớp 9) là trở thành một cầu thủ bóng đá chứ không phải trở thành một sinh viên đại học về khoa học. Ngay cả trong mơ, tôi cũng chưa từng hình dung ra cảnh mình sẽ trở thành một kỹ sư cơ điện tử, làm việc cho một viện nghiên cứu trong trường đại học – như hiện tại. Nhưng mà, đời là vậy đấy… đôi khi plan A lại không phải là thứ phù hợp nhất với mình.</p>
+<p>Thực ra, mọi chuyện bắt đầu khi tôi học lớp 7. Tôi crush một cô bạn cùng lớp, trong khi học lực thì lại kém hơn bạn ấy. Không những thế, cô ấy còn thích một bạn nam khác trong lớp – điều đó khiến tôi nhận ra rằng mình không còn gì để mất nữa, và mình phải chiến đấu, phải chiến thắng. Ít nhất là phải trở nên giỏi hơn, để ít ra không bị coi là "không có cửa". Ngẫm ra tình yêu học trò cũng hay đấy chứ, cũng đâu có gì sai – đôi khi, chính nó lại là động lực khiến con người ta trở thành phiên bản tốt hơn của chính mình. Tiếc là mẹ tôi - người chi trả học phí của tôi thì không nghĩ vậy :))) Ra đời thua ai chứ tầm đấy mà thua cha mẹ thì làm gì có gì để mà cãi, chấp nhận hoặc phải trốn để không bị phát hiện thôi chứ còn sao nữa. </p>
+<h3 id="ai-cung-phai-bat-au-tu-au-o-toi-chon-vi-tri-moi-nguoi-co-chung-iem-xuat-phat">Ai cũng phải bắt đầu từ đâu đó, tôi chọn vị trí mọi người có chung điểm xuất phát</h3>
+<p>Đó là lý tôi chọn môn Hóa học để bắt đầu hành trình của mình. Tôi nhắm đến nó và nỗ lực để trở thành số 1 trong lớp. Ít nhất thì, với một môn mà tất cả đều bắt đầu gần như từ con số 0, tôi sẽ không phải lo bị tụt hậu quá xa so với người khác. Nghe cũng có vẻ là một chiến thuật hợp lý đối với một cậu bé đội sổ bắt đầu, đúng không?</p>
+<p>Và rồi, đến lớp 8, tôi đã có mặt trong đội tuyển Hóa học của trường.
+<p>Một khởi đầu… khá hoàn hảo cho một chiến thuật "đầy tính toán" của một cậu bé lớp 7.</p></p>
+<h2 id="cuoc-oi-se-day-ban-la-plan-b-cung-chua-phai-lua-chon-tot-nhat">Cuộc đời sẽ dạy bạn là plan B cũng chưa phải lựa chọn tốt nhất</h2>
+<p>Vâng, đúng như những gì tôi nói ở đề mục: việc bắt đầu với tôi khá suôn sẻ. Nhưng rồi, ngay ở kỳ thi Học sinh giỏi đầu tiên, tôi làm gần hết bài thi… và nhận về đúng 0.5 điểm. Điều đó khiến tôi quá sốc và khóc liền hai ngày.</p>
+<p>Tôi không bao giờ nghĩ mọi thứ lại tệ đến vậy. Trong đầu tôi lúc đó, việc tham gia đội tuyển chỉ là để cạnh tranh vị trí số 1 với cậu bạn cùng lớp — chứ nào phải để nhận về một con số suýt âm như thế này. Và thực ra thì không phải là tôi không làm được bài, thậm chí tôi còn là người làm nhiều nhất và là tier 1 "tốn giấy" của toàn Thị Xã. Kết quả đó luôn khiến cho tôi nghi ngờ không biết có thế lực nào đã thực sự chấm bài cho tôi :))</p>
+<p>Sau cơn mưa thì trời lại sáng. Nhưng mà… khi trời sáng thì mình đâu còn đứng chỗ mưa nữa. Tôi tiếp tục ở lại đội tuyển Hóa, cho đến một ngày bị cô giáo mắng vì không chịu chép bài. Tôi giận dỗi, và xin nghỉ đội tuyển ngay lập tức. Có lẽ cái tôi quá cao và khí chất trẻ trâu level max của tôi lúc đó khiến cả cô giáo dạy đội tuyển và cả cô hiệu trưởng cũng phải bất ngờ.
+<p>Đúng là bản chất boiz phố nó ngấm vào máu rồi mà :)))</p></p>
+<p>Khi plan B bị bạn gạch trong phút mốt, thì đúng ngay tuần sau, nhờ quan hệ của người mẹ đã bao năm đứng ra chi trả học phí và sinh hoạt phí cho tôi, tôi được “chiêu mộ” vào đội tuyển Vật Lý. Đúng là con ông cháu cha lúc nào cũng dễ sống hơn thật :)))</p>
+<h3 id="cau-chuyen-cua-mot-huyen-thoai-tiep-tuc-uoc-tiep-noi-tai-ay">Câu chuyện của một huyền thoại tiếp tục được tiếp nối tại đây</h3>
+<p>Tôi bắt đầu sau các bạn trong đội 1 tháng, nhưng vẫn được đặc quyền miễn chép bài từ thầy giáo. Thế mới biết, cuộc đời có thể gập ghềnh, nhưng quan hệ vẫn là con đường ngắn nhất. Hơn nữa bản chất tài tử của tôi ở thời điểm đó lại được thầy giáo đánh giá rất cao, và có lẽ điều mà tôi xúc động nhất là việc thầy đã gửi cho tôi một email và nói rằng thầy rất hy vọng tôi sẽ phát triển về hướng đi liên quan đến Vật Lý sau này. Có lẽ điều này đến tận thời điểm này tôi mới dám nói ra, không biết sao nữa nhưng chắc tôi cảm thấy có thể đây cũng sẽ là vùng an toàn của tôi.  </p>
+<h2 id="bat-au-at-cho-minh-nhung-muc-tieu-cao-hon">Bắt đầu đặt cho mình những mục tiêu cao hơn</h2>
+<p>Có thể nói, ở thời điểm đó, Plan C của tôi đang diễn ra khá suôn sẻ. Ít nhất là tôi đã bắt đầu nhận được sự kỳ vọng rất lớn từ thầy cô, điều mà trước đó tôi chưa từng thực sự cảm nhận được. Rồi một ngày, sau khi xem hàng loạt vlog của các anh chị du học sinh – thứ đang rất thịnh hành thời bấy giờ – cái suy nghĩ về việc được đi nước ngoài trong tôi bỗng dưng được "kích hoạt" trở lại. Tôi chợt nhớ ra: à đúng rồi, ngày xưa mình cũng từng rất muốn ra nước ngoài cơ mà.</p>
+<p>Tôi cũng có một người bác ruột đang sinh sống ở Đức là anh trai của bố tôi. Và với tôi khi đó, hình ảnh một người làm việc ở nước ngoài, thỉnh thoảng bay về Việt Nam, thật sự rất "ngầu". Được đi máy bay, được sống ở một quốc gia giàu có, văn minh – trong đầu tôi lúc đó, nó dường như là một Plan C hoàn hảo. Vừa thực tế, vừa đủ để mơ mộng. Tôi đã nhắm đến những ngôi trường chuyên hàng đầu của Hà Nội, nơi mà có rất nhiều bạn đi du học và tin rằng chỉ cần đỗ ở những ngôi trường đó, mình có thể phấn đầu tiếp tục tìm được một học bổng nào đó ở đây. Sau đó tôi thất bại với việc thiếu 1 điểm ở chuyên Lý Tổng Hợp, nhưng đối với tôi có lẽ thất bại này là chuyện khiến tôi không quá buồn. Có thể mình thất bại ở một cuộc thi, nhưng với một hành trình từ một cậu bé học kém nhất lớp ở trường làng, đối với tôi để mà có thể xanh chín với các anh em toàn miền Bắc cũng là một thứ gì đó khiến tôi biết mình không phải xấu hổ. </p>
+<h3 id="nhung-roi-cung-chi-la-ngang-cao-au-mot-chut">Nhưng rồi cũng chỉ là ngẩng cao đầu một chút ...</h3>
+<p>Tôi tiếp tục quay về trường làng, tiếp tục ba năm cấp 3 và tạm gác lại plan C. Lúc đó, thậm chí tôi còn chưa nghĩ ra nổi một plan C' nào cho mình. Trước mắt tôi, điều quan trọng nhất là được cùng người anh em Tú cùng bàn - người anh em Tuấn bị bố mắng được tôi khuyên về đái vào bình xăng của ông già – và những chiến hữu khác – quậy tung cái trường cấp 3 lên cho biết cái đời thanh xuân. </p>
+<p>Với tôi thì khoảng cách địa lý cũng như động lực học của tôi và Tuấn khác nhau khá xa. Cụ thể nó ngồi bàn 2 còn tôi ngồi bàn cuối, và Tuấn có ước mơ cháy bỏng để trở thành một kiến trúc sư, nên có lẽ vì thế tôi đành phải tìm cho mình một đồng minh mà có thể chơi cùng tôi sát ván trong mọi ván bài. Vâng đó là Tú, một đứa cũng giống hệt tôi: hai thằng không có nổi một kế hoạch cụ thể cho tương lai, 2 ý tưởng lớn của việc sống với triết lý "anh em ta không sinh cùng ngày cùng tháng, nhưng nhất định bước ra khỏi cổng trường cấp 3 thì phải trả hết nợ căng tin" đã gặp nhau từ đó. Cũng vì cái tinh thần sống đầy khí phách và... không màng bảng điểm ấy, tôi đã chọn xuống bàn cuối ngồi cùng Tú. Mặc dù để mà nói Tú nó đô con nhất nhì lớp, còn tôi thì ngược lại.</p>
+<h3 id="su-ton-vinh-khong-biet-nen-vui-hay-nen-buon">Sự tôn vinh không biết nên vui hay nên buồn</h3>
+<p>Có lẽ cũng chính vì chơi với Tú nên tôi rơi vào một hoàn cảnh không biết nên vui hay nên buồn. Đó là hồi lớp 11 được vinh dự nhận được danh hiệu "học sinh tiêu biểu" nhưng lại là học sinh tiên tiến của lớp. Lắm lúc tôi cũng tự hỏi có ai sẽ làm và muốn làm được điều như tôi làm. Cũng không muốn flex đâu nhưng mà cũng do được giải nhì học sinh giỏi Vật Lý cấp tỉnh nên mới cũng có gỡ được xíu, chứ không với bảng điểm 6.0 môn Sinh học thì khả năng mẹ tôi sẽ cho tôi nghe một bài ca 3 ngày không hết :))) </p>
+<p>Tiếp về chuyện 2 ý tưởng lớn gặp nhau, với tôi và Tú ở thời điểm đó, thời gian phần lớn ở trên lớp là để tính toán chiến lược trả nợ cho bác Mai – người nắm giữ sổ nợ của các thanh niên hiếu học ở cái trường cấp 3 Xuân Hòa. Thậm chí tụi tôi từng vạch ra hẳn một kế hoạch chiến lược thi hết các cuộc thi học sinh giỏi cấp trường, cấp huyện, rồi cả vượt cấp – chỉ để có thể kiếm càng nhiều tiền càng tốt. 
+<p>Nhưng mà… kế hoạch là một chuyện, còn thực tế là một nỗi đau. Cho đến ngày tốt nghiệp, hai thằng vẫn không thể rời khỏi cổng trường cấp 3 mà trả hết được nợ. Đó có lẽ là bài học đầu tiên về việc: làm không đủ ăn là như thế nào :)))    </p></p>
+<h2 id="plan-c-bat-au-uoc-hinh-thanh">Plan C' bắt đầu được hình thành</h2>
+<p>Khi bước vào khoảng thời gian học lớp 12, tôi bắt đầu nhìn thấy một hướng đi có vẻ… khá dễ: du học đại học miễn phí ở Đức. Với sức học của tôi lúc đó, thì việc đủ điều kiện để đi du học gần như là “nhắm mắt cũng đủ”, nên tôi cũng không phải bận tâm quá nhiều.</p>
+<p>Còn về Tú – dĩ nhiên rồi – ban đầu thấy kèo thơm thì cũng định đi cùng tôi. Nhưng bằng một chút lý trí còn sót lại, tôi kịp nhìn ra viễn cảnh đen tối: "Nếu hai thằng mà cùng bay sang Đức thì xác định là không đứa nào ngóc đầu lên nổi nữa".  Và thế là tôi phải ngăn nó lại – vì tình bạn, vì tương lai, và cũng vì… cả nhân loại cũng như vì các chủ nợ tiềm năng :)))</p>
+<p>Cuối cùng thì Tú, nhờ vào mối quan hệ “bền vững” của phụ thân, cũng nhanh chóng tìm được cho mình một con đường riêng. Với nó thì mọi thứ cũng đơn giản thôi – đậu đại học là chuyện trong tầm tay. Nên cơ bản là: tôi với Tú thuộc loại không phải cố gắng nhiều, cứ chơi tới bến, đến ngày thi thì đi thi, thi xong lại… về chơi tiếp. Trong khi đó, xung quanh thì các bạn cùng lớp đang phải cày bục mặt cho một mục tiêu tương lai nào đó. Đến cả những đứa ham chơi nhất, cũng tham gia với bọn tôi trong mọi cuộc chơi thậm chí còn phải tách đoàn vì một kì thi đại học đầy cam go. Nhưng với bọn tôi lúc đó, cũng may khi còn có nhau giữa thế giới mà mọi người đang đi theo chiều thuận này.</p>
+<p>Việc xin đi du học với tôi lúc ấy cũng chẳng có gì quá khó. Tôi không cần phải thuyết phục bố mẹ quá nhiều, vì… bố mẹ tôi đẻ ra tôi mà – họ thừa hiểu là có ngăn thì tôi cũng đi, nên tốt nhất là… ủng hộ từ đầu cho lành. Và thế là, sau khi thi xong cấp 3, shark bố và shark mẹ đã chính thức duyệt chi cho tôi đi học tiếng Đức, kèm theo một điều kiện duy nhất: Tự làm hồ sơ đi, để còn tập quen với việc tự lập. Quá easy!!!</p>
+<h2 id="cuoi-cung-thi-toi-cung-tim-ra-plan-c-cho-chinh-minh">Cuối cùng thì tôi cũng tìm ra plan C' cho chính mình</h2>
+<p>Việc học tiếng Đức ban đầu cũng khá khó khăn vì cái tính lười của tôi đã quen từ thời cấp 3, hơn nữa cũng mới lên Hà Nội có khá nhiều thứ chơi khiên tôi không quá tập trung được vào việc học. Nhưng cuối cùng thì tôi cũng vẫn đạt được mục tiêu của plan C' và đặt chân được tới nước Đức. Ở đây thì cũng có khá nhiều chuyện và rất nhiều trải nghiệm mới, nhưng có lẽ sẽ dành thời gian ở bài viết sau vì còn dài lắm. Còn bây giờ phải tập trung để thi nốt kì này đã :))</p>
+<hr />
+<p><em>See ya.</em> </p>
+        </article>
+    </div>
+    
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-text">
+                <div class="copyright">© 2025 Hiep Nguyen</div>
+                <div class="tagline">Vietnamese soul, global impact</div>
+                <div class="version">Est. 1997 | Version 27.0 (and counting!)</div>
+            </div>
+        </div>
+    </footer>
+    
+    <script>
+        // Copy code functionality
+        function copyCode(button) {
+            const codeBlock = button.parentElement;
+            const code = codeBlock.querySelector('code').textContent;
+            
+            navigator.clipboard.writeText(code).then(function() {
+                // Change button text temporarily
+                const originalText = button.textContent;
+                button.textContent = 'Copied!';
+                button.style.background = '#238636';
+                button.style.color = '#ffffff';
+                
+                setTimeout(function() {
+                    button.textContent = originalText;
+                    button.style.background = '#30363d';
+                    button.style.color = '#8b949e';
+                }, 2000);
+            }).catch(function(err) {
+                console.error('Could not copy text: ', err);
+                button.textContent = 'Failed';
+                button.style.background = '#da3633';
+                button.style.color = '#ffffff';
+            });
+        }
+        
+        // Disable syntax highlighting to avoid conflicts
+        // Code blocks will display with basic styling only
+    </script>
+</body>
+</html>

@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Feature Engineering trong Xử lý Ảnh và Âm thanh: Từ Cổ điển đến Hiện đại - Blog của Hiệp</title>
+    <meta name="description" content="Khám phá các kỹ thuật feature engineering kinh điển và hiện đại cho xử lý ảnh và âm thanh, từ HOG, SIFT đến MFCC, Spectrogram, và vai trò của chúng trong kỷ nguyên Deep Learning.">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- MathJax for mathematical formulas -->
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            },
+            svg: {
+                fontCache: 'global'
+            }
+        };
+    </script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #1f1f1f;
+            background-image: 
+                radial-gradient(circle at 25% 25%, rgba(255,255,255,0.04) 0%, transparent 50%),
+                radial-gradient(circle at 75% 75%, rgba(255,255,255,0.04) 0%, transparent 50%);
+            color: #ffffff;
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            flex: 1;
+        }
+        
+        /* Navigation */
+        .nav-back {
+            margin-bottom: 40px;
+        }
+        
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: #64ffda;
+            text-decoration: none;
+            font-weight: 500;
+            padding: 10px 20px;
+            border: 1px solid #64ffda;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+            background: rgba(100, 255, 218, 0.1);
+        }
+        
+        .back-button:hover {
+            background: #64ffda;
+            color: #1f1f1f;
+            transform: translateY(-2px);
+        }
+        
+        /* Post Header */
+        .post-header {
+            margin-bottom: 40px;
+            padding-bottom: 30px;
+            border-bottom: 1px solid #233554;
+        }
+        
+        .post-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .post-date {
+            color: #8892b0;
+            font-size: 0.9rem;
+        }
+        
+        .post-category {
+            background: #64ffda;
+            color: #1f1f1f;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        
+        .post-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 20px;
+            line-height: 1.2;
+        }
+        
+        .post-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .post-tag {
+            background: rgba(100, 255, 218, 0.1);
+            color: #64ffda;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            border: 1px solid rgba(100, 255, 218, 0.2);
+        }
+        
+        .post-author {
+            color: #64ffda;
+            font-weight: 500;
+            font-size: 1.1rem;
+        }
+        
+        /* Post Content */
+        .post-content {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            color: #e6e6e6;
+        }
+        
+        .post-content h1, .post-content h2, .post-content h3, .post-content h4, .post-content h5, .post-content h6 {
+            color: #ffffff;
+            margin: 40px 0 20px 0;
+            font-weight: 600;
+        }
+        
+        .post-content h1 {
+            font-size: 2rem;
+        }
+        
+        .post-content h2 {
+            font-size: 1.8rem;
+        }
+        
+        .post-content h3 {
+            font-size: 1.5rem;
+        }
+        
+        .post-content p {
+            margin-bottom: 20px;
+        }
+        
+        .post-content ul, .post-content ol {
+            margin: 20px 0;
+            padding-left: 30px;
+        }
+        
+        .post-content li {
+            margin-bottom: 10px;
+        }
+        
+        .post-content strong {
+            color: #64ffda;
+            font-weight: 600;
+        }
+        
+        .post-content em {
+            color: #8892b0;
+            font-style: italic;
+        }
+        
+        .post-content hr {
+            border: none;
+            border-top: 1px solid #233554;
+            margin: 40px 0;
+        }
+        
+        .post-content blockquote {
+            border-left: 4px solid #64ffda;
+            padding-left: 20px;
+            margin: 20px 0;
+            color: #8892b0;
+            font-style: italic;
+        }
+        
+        /* Math and Image styles */
+        .math-formula {
+            margin: 20px 0;
+            text-align: center;
+            overflow-x: auto;
+        }
+        
+        .math-formula.inline {
+            display: inline;
+            margin: 0 5px;
+        }
+        
+        .post-image {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            margin: 20px 0;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+        
+        .post-image-container {
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        .post-image-caption {
+            font-size: 0.9rem;
+            color: #8892b0;
+            margin-top: 8px;
+            font-style: italic;
+        }
+        
+        .code-block {
+            background: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            padding: 12px;
+            margin: 16px 0;
+            overflow-x: auto;
+            font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', 'Source Code Pro', monospace;
+            font-size: 0.85rem;
+            line-height: 1.4;
+            position: relative;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+        
+        .code-block::before {
+            content: attr(data-language);
+            position: absolute;
+            top: 0;
+            right: 12px;
+            background: #30363d;
+            color: #8b949e;
+            padding: 2px 8px;
+            font-size: 0.75rem;
+            border-radius: 0 0 4px 4px;
+            text-transform: uppercase;
+            font-weight: 500;
+        }
+        
+        .code-block pre {
+            margin: 0;
+            color: #c9d1d9;
+        }
+        
+        .code-block code {
+            color: #c9d1d9;
+        }
+        
+        /* Syntax highlighting colors */
+        .code-block .keyword {
+            color: #ff7b72;
+        }
+        
+        .code-block .string {
+            color: #a5d6ff;
+        }
+        
+        .code-block .comment {
+            color: #8b949e;
+            font-style: italic;
+        }
+        
+        .code-block .function {
+            color: #d2a8ff;
+        }
+        
+        .code-block .number {
+            color: #79c0ff;
+        }
+        
+        .code-block .operator {
+            color: #ff7b72;
+        }
+        
+        /* Inline code */
+        .post-content code:not(.code-block code) {
+            background: rgba(110, 118, 129, 0.4);
+            color: #c9d1d9;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 0.85em;
+            font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', 'Source Code Pro', monospace;
+        }
+        
+        /* Table Styles */
+        .post-content table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 2rem 0;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .post-content thead {
+            background: rgba(100, 255, 218, 0.1);
+        }
+        
+        .post-content th {
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+            color: #64ffda;
+            border-bottom: 2px solid rgba(100, 255, 218, 0.3);
+        }
+        
+        .post-content td {
+            padding: 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            color: #e0e0e0;
+        }
+        
+        .post-content tr:hover {
+            background: rgba(255, 255, 255, 0.02);
+        }
+        
+        .post-content tbody tr:last-child td {
+            border-bottom: none;
+        }
+        
+        /* Copy button for code blocks */
+        .code-block {
+            position: relative;
+        }
+        
+        .copy-button {
+            position: absolute;
+            top: 8px;
+            right: 40px;
+            background: #30363d;
+            color: #8b949e;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+        
+        .code-block:hover .copy-button {
+            opacity: 1;
+        }
+        
+        .copy-button:hover {
+            background: #484f58;
+            color: #c9d1d9;
+        }
+        
+        /* Line numbers for long code blocks */
+        .code-block.long-code {
+            counter-reset: line;
+        }
+        
+        .code-block.long-code pre {
+            display: flex;
+        }
+        
+        .code-block.long-code code {
+            counter-increment: line;
+            display: block;
+            padding-left: 3.5em;
+            position: relative;
+        }
+        
+        .code-block.long-code code::before {
+            content: counter(line);
+            position: absolute;
+            left: 0;
+            width: 2.5em;
+            text-align: right;
+            color: #484f58;
+            font-size: 0.9em;
+            padding-right: 1em;
+            border-right: 1px solid #30363d;
+        }
+        
+        .highlight-box {
+            background: rgba(100, 255, 218, 0.1);
+            border-left: 4px solid #64ffda;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .warning-box {
+            background: rgba(255, 193, 7, 0.1);
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .info-box {
+            background: rgba(13, 202, 240, 0.1);
+            border-left: 4px solid #0dcaf0;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        /* Footer */
+        .footer {
+            background: #1f1f1f;
+            background-image: 
+                radial-gradient(circle at 25% 25%, rgba(255,255,255,0.04) 0%, transparent 50%),
+                radial-gradient(circle at 75% 75%, rgba(255,255,255,0.04) 0%, transparent 50%);
+            border-top: 1px solid rgba(255, 255, 255, 0.03);
+            padding: 40px 0;
+            margin-top: 60px;
+            text-align: center;
+            position: relative;
+            width: 100vw;
+            margin-left: calc(-50vw + 50%);
+        }
+        
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 8vw;
+            text-align: center;
+        }
+        
+        .footer-text {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            align-items: center;
+        }
+        
+        .copyright {
+            font-size: 18px;
+            font-weight: 600;
+            color: #ffffff;
+            letter-spacing: 0.5px;
+        }
+        
+        .tagline {
+            font-size: 16px;
+            color: #888;
+            font-style: italic;
+            margin: 4px 0;
+        }
+        
+        .version {
+            font-size: 14px;
+            color: #666;
+            font-family: 'Courier New', monospace;
+            letter-spacing: 0.3px;
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px 15px;
+            }
+            
+            .post-title {
+                font-size: 2rem;
+            }
+            
+            .post-content {
+                font-size: 1rem;
+            }
+            
+            .post-content h1 {
+                font-size: 1.8rem;
+            }
+            
+            .post-content h2 {
+                font-size: 1.6rem;
+            }
+            
+            .post-content h3 {
+                font-size: 1.4rem;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .post-title {
+                font-size: 1.8rem;
+            }
+            
+            .post-content {
+                font-size: 0.95rem;
+            }
+            
+            .post-content h1 {
+                font-size: 1.6rem;
+            }
+            
+            .post-content h2 {
+                font-size: 1.4rem;
+            }
+            
+            .post-content h3 {
+                font-size: 1.2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Navigation -->
+        <nav class="nav-back">
+            <a href="../index.html" class="back-button">
+                ← Quay lại trang chủ
+            </a>
+        </nav>
+        
+        <!-- Post Header -->
+        <header class="post-header">
+            <div class="post-meta">
+                <span class="post-date">2025-01-26</span>
+                <span class="post-category">TIL</span>
+            </div>
+            
+            <h1 class="post-title">Feature Engineering trong Xử lý Ảnh và Âm thanh: Từ Cổ điển đến Hiện đại</h1>
+            
+            <div class="post-tags">
+                <span class="post-tag">feature engineering</span><span class="post-tag">computer vision</span><span class="post-tag">audio processing</span><span class="post-tag">machine learning</span><span class="post-tag">deep learning</span>
+            </div>
+            
+            <div class="post-author">Bởi Huy Hiep Nguyen</div>
+        </header>
+        
+        <!-- Post Content -->
+        <article class="post-content">
+            <h2 id="gioi-thieu">Giới thiệu</h2>
+<p>Trong thế giới của Machine Learning, "dữ liệu là vua". Nhưng dữ liệu thô (raw data) - dù là một bức ảnh hàng triệu pixel hay một file âm thanh hàng nghìn mẫu - hiếm khi có thể được sử dụng trực tiếp một cách hiệu quả. Đây là lúc <strong>Feature Engineering</strong> (Kỹ thuật Đặc trưng) tỏa sáng. Đó là nghệ thuật và khoa học của việc trích xuất, biến đổi và lựa chọn những đặc trưng (features) hữu ích từ dữ liệu thô để mô hình học máy có thể "hiểu" và đưa ra dự đoán chính xác hơn.</p>
+<p>Ngay cả trong kỷ nguyên của Deep Learning, nơi các mô hình có khả năng tự học đặc trưng, feature engineering vẫn giữ một vai trò không thể thiếu. Bài viết này sẽ đi sâu vào các kỹ thuật feature engineering kinh điển và hiện đại cho hai lĩnh vực quan trọng: xử lý ảnh và âm thanh.</p>
+<h2 id="tai-sao-feature-engineering-van-quan-trong">Tại sao Feature Engineering vẫn quan trọng?</h2>
+<p>Nhiều người cho rằng các mạng nơ-ron sâu (Deep Neural Networks) đã khiến feature engineering trở nên lỗi thời. Điều này chỉ đúng một phần. Dưới đây là những lý do tại sao kỹ thuật này vẫn cực kỳ quan trọng:</p>
+<ol>
+<li><strong>Tăng hiệu suất với dữ liệu nhỏ</strong>: Các mô hình Deep Learning cần một lượng dữ liệu khổng lồ để tự học đặc trưng hiệu quả. Với các bộ dữ liệu nhỏ hoặc vừa, việc cung cấp các đặc trưng được thiết kế tốt (hand-crafted features) có thể giúp mô hình hội tụ nhanh hơn và đạt độ chính xác cao hơn.</li>
+<li><strong>Tăng khả năng diễn giải (Interpretability)</strong>: Đặc trưng do con người thiết kế (ví dụ: "mức độ đỏ" trong ảnh, "tần số cơ bản" trong giọng nói) thường dễ hiểu hơn rất nhiều so với các đặc trưng được học bởi một mạng nơ-ron sâu. Điều này rất quan trọng trong các lĩnh vực y tế, tài chính, nơi việc giải thích quyết định của mô hình là bắt buộc.</li>
+<li><strong>Giảm chi phí tính toán</strong>: Việc trích xuất đặc trưng trước có thể làm giảm đáng kể kích thước của dữ liệu đầu vào, từ đó giảm thời gian huấn luyện và chi phí tính toán so với việc đưa toàn bộ dữ liệu thô vào một mô hình lớn.</li>
+<li><strong>Bổ sung cho Deep Learning</strong>: Feature engineering có thể được sử dụng kết hợp với Deep Learning. Ví dụ, thay vì đưa ảnh thô, ta có thể đưa cả ảnh thô và các đặc trưng HOG của nó vào mô hình để cung cấp thêm "gợi ý" cho mạng.</li>
+<p></ol></p>
+<hr />
+<h2 id="feature-engineering-cho-xu-ly-hinh-anh-computer-vision">Feature Engineering cho Xử lý Hình ảnh (Computer Vision)</h2>
+<p>Hình ảnh là một ma trận các giá trị pixel. Mục tiêu của feature engineering là biến đổi ma trận này thành một tập hợp các đặc trưng mang nhiều thông tin hơn về nội dung của ảnh.</p>
+<h3 id="1-histogram-of-oriented-gradients-hog">1. Histogram of Oriented Gradients (HOG)</h3>
+<ul>
+<li><strong>Ý tưởng</strong>: HOG mô tả vật thể dựa trên sự phân bố hướng của gradient (độ dốc về cường độ sáng). Nó hoạt động dựa trên nguyên tắc rằng hình dạng và cấu trúc của một vật thể có thể được nhận dạng tốt bởi sự thay đổi cường độ sáng cục bộ, ngay cả khi bỏ qua màu sắc.</li>
+<li><strong>Cách hoạt động</strong>:<ol>
+<li>Ảnh được chia thành các ô (cell) nhỏ.</li>
+<li>Trong mỗi ô, thuật toán tính toán gradient theo hướng x ($G_x$) và y ($G_y$).</li>
+<li>Từ đó, tính toán độ lớn và hướng của gradient:<ul>
+<li>Độ lớn: $G = \sqrt{G_x^2 + G_y^2}$</li>
+<li>Hướng: $\theta = \arctan\left(\frac{G_y}{G_x}\right)$</li>
+<p></ul></p>
+<p></li></p>
+<li>Một histogram của các hướng gradient được tạo ra cho mỗi ô. Các "phiếu bầu" vào histogram được trọng số hóa bởi độ lớn của gradient.</li>
+<li>Các histogram của các ô lân cận được gộp lại thành các khối (block) và chuẩn hóa để chống lại sự thay đổi về ánh sáng.</li>
+<li>Vector cuối cùng là sự kết hợp của tất cả các histogram đã được chuẩn hóa từ các khối.</li>
+<p></ol></p>
+<p></li></p>
+<li><strong>Ví dụ</strong>: Rất thành công trong bài toán phát hiện người đi bộ.</li>
+<li><strong>Ưu điểm</strong>: Bất biến với thay đổi ánh sáng và biến dạng hình học nhỏ.</li>
+<li><strong>Nhược điểm</strong>: Không hiệu quả với các vật thể có cấu trúc phức tạp, dễ bị ảnh hưởng bởi xoay và thay đổi tỷ lệ lớn.</li>
+<p></ul></p>
+<h3 id="2-scale-invariant-feature-transform-sift">2. Scale-Invariant Feature Transform (SIFT)</h3>
+<ul>
+<li><strong>Ý tưởng</strong>: SIFT là một thuật toán mạnh mẽ để phát hiện và mô tả các "điểm đặc trưng" (keypoints) cục bộ trong ảnh. Các đặc trưng này bất biến với thay đổi tỷ lệ (scale), xoay (rotation) và phần nào đó là thay đổi ánh sáng và góc nhìn.</li>
+<li><strong>Cách hoạt động</strong>:<ol>
+<li><strong>Phát hiện điểm đặc trưng</strong>: Sử dụng hàm Differenc-of-Gaussian (DoG) trên nhiều tỷ lệ của ảnh để tìm các điểm cực trị (local extrema), đây chính là các keypoint.</li>
+<li><strong>Định hướng cho Keypoint</strong>: Gán một hoặc nhiều hướng cho mỗi keypoint dựa trên hướng gradient cục bộ để đạt được tính bất biến với phép xoay.</li>
+<li><strong>Tạo mô tả Keypoint</strong>: Một vùng 16x16 pixel xung quanh keypoint được lấy. Vùng này được chia thành 16 ô 4x4. Trong mỗi ô, một histogram 8 hướng được tính. Kết quả là một vector 128 chiều (16 ô * 8 hướng) mô tả keypoint đó.</li>
+<p></ol></p>
+<p></li></p>
+<li><strong>Ví dụ</strong>: Ghép ảnh (image stitching), nhận dạng đối tượng, theo dõi vật thể.</li>
+<li><strong>Ưu điểm</strong>: Rất mạnh mẽ, bất biến với xoay, tỷ lệ, và thay đổi ánh sáng.</li>
+<li><strong>Nhược điểm</strong>: Chi phí tính toán cao, đã được cấp bằng sáng chế (dù đã hết hạn ở một số nơi). Các biến thể như SURF, ORB nhanh hơn.</li>
+<p></ul></p>
+<h3 id="3-color-histograms-luoc-o-mau">3. Color Histograms (Lược đồ màu)</h3>
+<ul>
+<li><strong>Ý tưởng</strong>: Là đặc trưng đơn giản nhất, mô tả sự phân bố của các màu sắc trong ảnh.</li>
+<li><strong>Cách hoạt động</strong>: Đếm số lượng pixel cho mỗi khoảng giá trị màu (bin) trong một không gian màu nhất định (ví dụ: RGB, HSV).</li>
+<li><strong>Ví dụ</strong>: Phân loại ảnh dựa trên bối cảnh (ví dụ: ảnh bãi biển thường có nhiều màu xanh dương và vàng cát).</li>
+<li><strong>Ưu điểm</strong>: Rất nhanh, đơn giản, bất biến với xoay và thay đổi vị trí của đối tượng.</li>
+<li><strong>Nhược điểm</strong>: Mất hoàn toàn thông tin về không gian và cấu trúc. Hai ảnh rất khác nhau có thể có cùng lược đồ màu.</li>
+<p></ul></p>
+<h3 id="4-cac-ac-trung-khac">4. Các đặc trưng khác</h3>
+<ul>
+<li><strong>Edge Detection (Dò cạnh)</strong>: Sử dụng các bộ lọc như Sobel, Canny để tìm các đường biên của vật thể. Kết quả có thể được dùng làm đặc trưng nhị phân.</li>
+<li><strong>Texture Features (Đặc trưng vân/kết cấu)</strong>: Các phương pháp như Local Binary Patterns (LBP) hoặc bộ lọc Gabor mô tả kết cấu bề mặt của vật thể (ví dụ: vỏ cây, vải).</li>
+<li><strong>PCA (Principal Component Analysis)</strong>: Mặc dù là một kỹ thuật giảm chiều, PCA có thể được dùng để tạo đặc trưng. Ví dụ, trong nhận dạng khuôn mặt (Eigenfaces), các "thành phần chính" của một tập hợp ảnh mặt người được dùng làm đặc trưng.</li>
+<p></ul></p>
+<hr />
+<h2 id="feature-engineering-cho-xu-ly-am-thanh">Feature Engineering cho Xử lý Âm thanh</h2>
+<p>Tín hiệu âm thanh là một chuỗi các mẫu theo thời gian. Feature engineering chuyển đổi chuỗi này thành các đặc trưng mô tả nội dung âm thanh như cao độ, âm sắc, nhịp điệu.</p>
+<h3 id="1-spectrogram-pho-ke">1. Spectrogram (Phổ kế)</h3>
+<ul>
+<li><strong>Ý tưởng</strong>: Spectrogram là một biểu diễn hình ảnh của âm thanh, cho thấy sự thay đổi của phổ tần số theo thời gian. Nó là một trong những đặc trưng quan trọng nhất.</li>
+<li><strong>Cách hoạt động</strong>:<ol>
+<li>Tín hiệu âm thanh được chia thành các khung (frame) ngắn, chồng chéo nhau.</li>
+<li>Áp dụng phép biến đổi Fourier (cụ thể là Short-Time Fourier Transform - STFT) cho từng khung để chuyển từ miền thời gian sang miền tần số.</li>
+<li>Kết quả là một ma trận 2D, trong đó trục x là thời gian, trục y là tần số, và cường độ (màu sắc) là biên độ của tần số đó.</li>
+<p></ol></p>
+<p></li></p>
+<li><strong>Ví dụ</strong>: Hầu hết các mô hình Deep Learning cho âm thanh (nhận dạng giọng nói, phân loại nhạc) đều sử dụng Spectrogram (hoặc biến thể của nó) làm đầu vào.</li>
+<li><strong>Ưu điểm</strong>: Cung cấp một biểu diễn giàu thông tin, trực quan.</li>
+<li><strong>Nhược điểm</strong>: Kích thước lớn, có thể chứa thông tin dư thừa.</li>
+<p></ul></p>
+<h3 id="2-mel-frequency-cepstral-coefficients-mfcc">2. Mel-Frequency Cepstral Coefficients (MFCC)</h3>
+<ul>
+<li><strong>Ý tưởng</strong>: MFCC là đặc trưng mô tả hình dạng tổng thể của phổ âm thanh, được thiết kế để mô phỏng cách tai người cảm nhận âm thanh. Tai người nhạy cảm hơn với sự thay đổi ở tần số thấp so với tần số cao.</li>
+<li><strong>Cách hoạt động</strong>:<ol>
+<li>Tính toán Spectrogram từ tín hiệu.</li>
+<li>Chuyển đổi trục tần số sang thang đo Mel (Mel scale) bằng cách sử dụng một bộ lọc tam giác (triangular filter bank).</li>
+<li>Lấy log của năng lượng ở mỗi băng tần Mel.</li>
+<li>Áp dụng phép biến đổi Cosine rời rạc (Discrete Cosine Transform - DCT) để thu được các hệ số MFCC. Phép DCT giúp giảm sự tương quan giữa các hệ số.
+<p>$$c_n = \sum_{k=1}^{K} (\log S_k) \cos\left[n\left(k - \frac{1}{2}\right)\frac{\pi}{K}\right]$$</p>
+<p>Trong đó $c_n$ là hệ số MFCC thứ n, $S_k$ là năng lượng log của băng tần Mel thứ k, và K là tổng số băng tần.</li></p>
+<p></ol></p>
+<p></li></p>
+<li><strong>Ví dụ</strong>: Là tiêu chuẩn vàng trong các hệ thống nhận dạng giọng nói cổ điển.</li>
+<li><strong>Ưu điểm</strong>: Biểu diễn nhỏ gọn, hiệu quả, mô phỏng tốt cảm nhận của con người.</li>
+<li><strong>Nhược điểm</strong>: Có thể loại bỏ một số thông tin về cao độ (pitch).</li>
+<p></ul></p>
+<h3 id="3-chroma-features-ac-trung-sac-o">3. Chroma Features (Đặc trưng Sắc độ)</h3>
+<ul>
+<li><strong>Ý tưởng</strong>: Mô tả sự phân bố năng lượng của tín hiệu qua 12 lớp cao độ (pitch classes) trong âm nhạc (C, C#, D, D#, E, F, F#, G, G#, A, A#, B).</li>
+<li><strong>Ví dụ</strong>: Rất hữu ích cho các tác vụ liên quan đến hòa âm như nhận dạng hợp âm, tìm kiếm bài hát theo giai điệu.</li>
+<li><strong>Ưu điểm</strong>: Bất biến với âm sắc (timbre), chỉ tập trung vào nội dung hòa âm.</li>
+<li><strong>Nhược điểm</strong>: Không hữu ích cho các tín hiệu không phải là nhạc.</li>
+<p></ul></p>
+<h3 id="4-cac-ac-trung-khac_1">4. Các đặc trưng khác</h3>
+<ul>
+<li><strong>Zero-Crossing Rate (ZCR)</strong>: Đếm số lần tín hiệu đi qua giá trị 0 trong một khung. Đặc trưng này liên quan đến "độ nhiễu" của tín hiệu. ZCR cao thường thấy ở các âm vô thanh (như /s/) và thấp ở các âm hữu thanh (nguyên âm).</li>
+<li><strong>Spectral Centroid (Tâm Phổ)</strong>: Tính toán "tâm khối lượng" của phổ, cho biết tần số nào chiếm ưu thế. Nó liên quan đến sự "sáng" (brightness) của âm thanh.</li>
+<li><strong>Spectral Rolloff, Flux, Flatness</strong>: Các đặc trưng khác mô tả hình dạng của phổ.</li>
+<p></ul></p>
+<hr />
+<h2 id="khi-nao-nen-dung-feature-engineering-thay-vi-deep-learning">Khi nào nên dùng Feature Engineering thay vì Deep Learning?</h2>
+<p>Đây là câu hỏi quan trọng. Dưới đây là bảng so sánh giúp bạn quyết định:</p>
+<table>
+<thead>
+<tr>
+<p><th style="text-align: center;">Tiêu chí</th></p>
+<p><th style="text-align: center;">Feature Engineering Cổ điển</th></p>
+<p><th style="text-align: center;">Deep Learning (End-to-End)</th></p>
+</tr>
+</thead>
+<tbody>
+<tr>
+<p><td style="text-align: center;"><strong>Lượng dữ liệu</strong></td></p>
+<p><td style="text-align: center;">Hiệu quả với dữ liệu nhỏ và vừa</td></p>
+<p><td style="text-align: center;">Yêu cầu dữ liệu lớn</td></p>
+</tr>
+<tr>
+<p><td style="text-align: center;"><strong>Khả năng diễn giải</strong></td></p>
+<p><td style="text-align: center;">Cao (đặc trưng có ý nghĩa)</td></p>
+<p><td style="text-align: center;">Thấp (hộp đen)</td></p>
+</tr>
+<tr>
+<p><td style="text-align: center;"><strong>Chi phí tính toán</strong></td></p>
+<p><td style="text-align: center;">Thấp hơn (cả huấn luyện và suy luận)</td></p>
+<p><td style="text-align: center;">Cao, yêu cầu GPU/TPU</td></p>
+</tr>
+<tr>
+<p><td style="text-align: center;"><strong>Thời gian phát triển</strong></td></p>
+<p><td style="text-align: center;">Cần nhiều kiến thức chuyên môn và thời gian để thiết kế</td></p>
+<p><td style="text-align: center;">Nhanh hơn để thiết lập mô hình, nhưng cần nhiều thời gian tinh chỉnh</td></p>
+</tr>
+<tr>
+<p><td style="text-align: center;"><strong>Hiệu suất tối đa</strong></td></p>
+<p><td style="text-align: center;">Có thể bị giới hạn bởi chất lượng đặc trưng</td></p>
+<p><td style="text-align: center;">Thường đạt hiệu suất cao nhất với đủ dữ liệu</td></p>
+</tr>
+<tr>
+<p><td style="text-align: center;"><strong>Tính linh hoạt</strong></td></p>
+<p><td style="text-align: center;">Kém linh hoạt, đặc trưng cho một tác vụ cụ thể</td></p>
+<p><td style="text-align: center;">Rất linh hoạt, có thể học các tác vụ phức tạp</td></p>
+</tr>
+<tr>
+<p><td style="text-align: center;"><strong>Khả năng diễn giải</strong></td></p>
+<p><td style="text-align: center;">Cao (đặc trưng có ý nghĩa)</td></p>
+<p><td style="text-align: center;">Thấp (hộp đen)</td></p>
+</tr>
+<tr>
+<p><td style="text-align: center;"><strong>Chi phí tính toán</strong></td></p>
+<p><td style="text-align: center;">Thấp hơn (cả huấn luyện và suy luận)</td></p>
+<p><td style="text-align: center;">Cao, yêu cầu GPU/TPU</td></p>
+</tr>
+<tr>
+<p><td style="text-align: center;"><strong>Thời gian phát triển</strong></td></p>
+<p><td style="text-align: center;">Cần nhiều kiến thức chuyên môn và thời gian để thiết kế</td></p>
+<p><td style="text-align: center;">Nhanh hơn để thiết lập mô hình, nhưng cần nhiều thời gian tinh chỉnh</td></p>
+</tr>
+<tr>
+<p><td style="text-align: center;"><strong>Hiệu suất tối đa</strong></td></p>
+<p><td style="text-align: center;">Có thể bị giới hạn bởi chất lượng đặc trưng</td></p>
+<p><td style="text-align: center;">Thường đạt hiệu suất cao nhất với đủ dữ liệu</td></p>
+</tr>
+<tr>
+<p><td style="text-align: center;"><strong>Tính linh hoạt</strong></td></p>
+<p><td style="text-align: center;">Kém linh hoạt, đặc trưng cho một tác vụ cụ thể</td></p>
+<p><td style="text-align: center;">Rất linh hoạt, có thể học các tác vụ phức tạp</td></p>
+</tr>
+</tbody>
+</table>
+<p><strong>Khi nào nên ưu tiên Feature Engineering:</strong></p>
+<ul>
+<li>Khi bạn có bộ dữ liệu nhỏ.</li>
+<li>Khi bạn cần giải thích tại sao mô hình đưa ra quyết định đó.</li>
+<li>Khi bạn bị giới hạn về tài nguyên tính toán.</li>
+<li>Khi bạn có kiến thức chuyên môn sâu về lĩnh vực và có thể thiết kế các đặc trưng thực sự tốt.</li>
+<p></ul></p>
+<p><strong>Khi nào nên ưu tiên Deep Learning:</strong></p>
+<ul>
+<li>Khi bạn có một lượng dữ liệu khổng lồ.</li>
+<li>Khi bài toán cực kỳ phức tạp và các đặc trưng thủ công không đủ để nắm bắt.</li>
+<li>Khi hiệu suất là ưu tiên hàng đầu và bạn có đủ tài nguyên tính toán.</li>
+<p></ul></p>
+<h2 id="ket-luan">Kết luận</h2>
+<p>Feature engineering không phải là một kỹ thuật lỗi thời mà là một công cụ mạnh mẽ và cần thiết trong kho vũ khí của bất kỳ nhà khoa học dữ liệu nào. Nó cung cấp khả năng kiểm soát, diễn giải và hiệu quả tính toán mà các mô hình end-to-end đôi khi còn thiếu. Hiểu rõ các đặc trưng kinh điển như HOG, SIFT cho hình ảnh và MFCC, Spectrogram cho âm thanh không chỉ giúp giải quyết các bài toán với phương pháp cổ điển mà còn cung cấp một nền tảng vững chắc để hiểu sâu hơn về cách các mô hình Deep Learning hoạt động và làm thế nào để kết hợp cả hai phương pháp một cách hiệu quả nhất.</p>
+        </article>
+    </div>
+    
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-text">
+                <div class="copyright">© 2025 Hiep Nguyen</div>
+                <div class="tagline">Vietnamese soul, global impact</div>
+                <div class="version">Est. 1997 | Version 27.0 (and counting!)</div>
+            </div>
+        </div>
+    </footer>
+    
+    <script>
+        // Copy code functionality
+        function copyCode(button) {
+            const codeBlock = button.parentElement;
+            const code = codeBlock.querySelector('code').textContent;
+            
+            navigator.clipboard.writeText(code).then(function() {
+                // Change button text temporarily
+                const originalText = button.textContent;
+                button.textContent = 'Copied!';
+                button.style.background = '#238636';
+                button.style.color = '#ffffff';
+                
+                setTimeout(function() {
+                    button.textContent = originalText;
+                    button.style.background = '#30363d';
+                    button.style.color = '#8b949e';
+                }, 2000);
+            }).catch(function(err) {
+                console.error('Could not copy text: ', err);
+                button.textContent = 'Failed';
+                button.style.background = '#da3633';
+                button.style.color = '#ffffff';
+            });
+        }
+        
+        // Disable syntax highlighting to avoid conflicts
+        // Code blocks will display with basic styling only
+    </script>
+</body>
+</html>

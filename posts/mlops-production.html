@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MLOps: Đưa Mô hình vào Sản xuất - Blog của Hiệp</title>
+    <meta name="description" content="Hướng dẫn chuyên sâu về MLOps - quy trình đưa mô hình học máy vào sản xuất, từ lý thuyết cơ bản đến triển khai thực tế với FastAPI, Docker và MLflow.">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- MathJax for mathematical formulas -->
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            },
+            svg: {
+                fontCache: 'global'
+            }
+        };
+    </script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #1f1f1f;
+            background-image: 
+                radial-gradient(circle at 25% 25%, rgba(255,255,255,0.04) 0%, transparent 50%),
+                radial-gradient(circle at 75% 75%, rgba(255,255,255,0.04) 0%, transparent 50%);
+            color: #ffffff;
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            flex: 1;
+        }
+        
+        /* Navigation */
+        .nav-back {
+            margin-bottom: 40px;
+        }
+        
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: #64ffda;
+            text-decoration: none;
+            font-weight: 500;
+            padding: 10px 20px;
+            border: 1px solid #64ffda;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+            background: rgba(100, 255, 218, 0.1);
+        }
+        
+        .back-button:hover {
+            background: #64ffda;
+            color: #1f1f1f;
+            transform: translateY(-2px);
+        }
+        
+        /* Post Header */
+        .post-header {
+            margin-bottom: 40px;
+            padding-bottom: 30px;
+            border-bottom: 1px solid #233554;
+        }
+        
+        .post-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .post-date {
+            color: #8892b0;
+            font-size: 0.9rem;
+        }
+        
+        .post-category {
+            background: #64ffda;
+            color: #1f1f1f;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        
+        .post-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 20px;
+            line-height: 1.2;
+        }
+        
+        .post-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .post-tag {
+            background: rgba(100, 255, 218, 0.1);
+            color: #64ffda;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            border: 1px solid rgba(100, 255, 218, 0.2);
+        }
+        
+        .post-author {
+            color: #64ffda;
+            font-weight: 500;
+            font-size: 1.1rem;
+        }
+        
+        /* Post Content */
+        .post-content {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            color: #e6e6e6;
+        }
+        
+        .post-content h1, .post-content h2, .post-content h3, .post-content h4, .post-content h5, .post-content h6 {
+            color: #ffffff;
+            margin: 40px 0 20px 0;
+            font-weight: 600;
+        }
+        
+        .post-content h1 {
+            font-size: 2rem;
+        }
+        
+        .post-content h2 {
+            font-size: 1.8rem;
+        }
+        
+        .post-content h3 {
+            font-size: 1.5rem;
+        }
+        
+        .post-content p {
+            margin-bottom: 20px;
+        }
+        
+        .post-content ul, .post-content ol {
+            margin: 20px 0;
+            padding-left: 30px;
+        }
+        
+        .post-content li {
+            margin-bottom: 10px;
+        }
+        
+        .post-content strong {
+            color: #64ffda;
+            font-weight: 600;
+        }
+        
+        .post-content em {
+            color: #8892b0;
+            font-style: italic;
+        }
+        
+        .post-content hr {
+            border: none;
+            border-top: 1px solid #233554;
+            margin: 40px 0;
+        }
+        
+        .post-content blockquote {
+            border-left: 4px solid #64ffda;
+            padding-left: 20px;
+            margin: 20px 0;
+            color: #8892b0;
+            font-style: italic;
+        }
+        
+        /* Math and Image styles */
+        .math-formula {
+            margin: 20px 0;
+            text-align: center;
+            overflow-x: auto;
+        }
+        
+        .math-formula.inline {
+            display: inline;
+            margin: 0 5px;
+        }
+        
+        .post-image {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            margin: 20px 0;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+        
+        .post-image-container {
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        .post-image-caption {
+            font-size: 0.9rem;
+            color: #8892b0;
+            margin-top: 8px;
+            font-style: italic;
+        }
+        
+        .code-block {
+            background: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            padding: 12px;
+            margin: 16px 0;
+            overflow-x: auto;
+            font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', 'Source Code Pro', monospace;
+            font-size: 0.85rem;
+            line-height: 1.4;
+            position: relative;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+        
+        .code-block::before {
+            content: attr(data-language);
+            position: absolute;
+            top: 0;
+            right: 12px;
+            background: #30363d;
+            color: #8b949e;
+            padding: 2px 8px;
+            font-size: 0.75rem;
+            border-radius: 0 0 4px 4px;
+            text-transform: uppercase;
+            font-weight: 500;
+        }
+        
+        .code-block pre {
+            margin: 0;
+            color: #c9d1d9;
+        }
+        
+        .code-block code {
+            color: #c9d1d9;
+        }
+        
+        /* Syntax highlighting colors */
+        .code-block .keyword {
+            color: #ff7b72;
+        }
+        
+        .code-block .string {
+            color: #a5d6ff;
+        }
+        
+        .code-block .comment {
+            color: #8b949e;
+            font-style: italic;
+        }
+        
+        .code-block .function {
+            color: #d2a8ff;
+        }
+        
+        .code-block .number {
+            color: #79c0ff;
+        }
+        
+        .code-block .operator {
+            color: #ff7b72;
+        }
+        
+        /* Inline code */
+        .post-content code:not(.code-block code) {
+            background: rgba(110, 118, 129, 0.4);
+            color: #c9d1d9;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 0.85em;
+            font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', 'Source Code Pro', monospace;
+        }
+        
+        /* Table Styles */
+        .post-content table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 2rem 0;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .post-content thead {
+            background: rgba(100, 255, 218, 0.1);
+        }
+        
+        .post-content th {
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+            color: #64ffda;
+            border-bottom: 2px solid rgba(100, 255, 218, 0.3);
+        }
+        
+        .post-content td {
+            padding: 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            color: #e0e0e0;
+        }
+        
+        .post-content tr:hover {
+            background: rgba(255, 255, 255, 0.02);
+        }
+        
+        .post-content tbody tr:last-child td {
+            border-bottom: none;
+        }
+        
+        /* Copy button for code blocks */
+        .code-block {
+            position: relative;
+        }
+        
+        .copy-button {
+            position: absolute;
+            top: 8px;
+            right: 40px;
+            background: #30363d;
+            color: #8b949e;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+        
+        .code-block:hover .copy-button {
+            opacity: 1;
+        }
+        
+        .copy-button:hover {
+            background: #484f58;
+            color: #c9d1d9;
+        }
+        
+        /* Line numbers for long code blocks */
+        .code-block.long-code {
+            counter-reset: line;
+        }
+        
+        .code-block.long-code pre {
+            display: flex;
+        }
+        
+        .code-block.long-code code {
+            counter-increment: line;
+            display: block;
+            padding-left: 3.5em;
+            position: relative;
+        }
+        
+        .code-block.long-code code::before {
+            content: counter(line);
+            position: absolute;
+            left: 0;
+            width: 2.5em;
+            text-align: right;
+            color: #484f58;
+            font-size: 0.9em;
+            padding-right: 1em;
+            border-right: 1px solid #30363d;
+        }
+        
+        .highlight-box {
+            background: rgba(100, 255, 218, 0.1);
+            border-left: 4px solid #64ffda;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .warning-box {
+            background: rgba(255, 193, 7, 0.1);
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .info-box {
+            background: rgba(13, 202, 240, 0.1);
+            border-left: 4px solid #0dcaf0;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        /* Footer */
+        .footer {
+            background: #1f1f1f;
+            background-image: 
+                radial-gradient(circle at 25% 25%, rgba(255,255,255,0.04) 0%, transparent 50%),
+                radial-gradient(circle at 75% 75%, rgba(255,255,255,0.04) 0%, transparent 50%);
+            border-top: 1px solid rgba(255, 255, 255, 0.03);
+            padding: 40px 0;
+            margin-top: 60px;
+            text-align: center;
+            position: relative;
+            width: 100vw;
+            margin-left: calc(-50vw + 50%);
+        }
+        
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 8vw;
+            text-align: center;
+        }
+        
+        .footer-text {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            align-items: center;
+        }
+        
+        .copyright {
+            font-size: 18px;
+            font-weight: 600;
+            color: #ffffff;
+            letter-spacing: 0.5px;
+        }
+        
+        .tagline {
+            font-size: 16px;
+            color: #888;
+            font-style: italic;
+            margin: 4px 0;
+        }
+        
+        .version {
+            font-size: 14px;
+            color: #666;
+            font-family: 'Courier New', monospace;
+            letter-spacing: 0.3px;
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px 15px;
+            }
+            
+            .post-title {
+                font-size: 2rem;
+            }
+            
+            .post-content {
+                font-size: 1rem;
+            }
+            
+            .post-content h1 {
+                font-size: 1.8rem;
+            }
+            
+            .post-content h2 {
+                font-size: 1.6rem;
+            }
+            
+            .post-content h3 {
+                font-size: 1.4rem;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .post-title {
+                font-size: 1.8rem;
+            }
+            
+            .post-content {
+                font-size: 0.95rem;
+            }
+            
+            .post-content h1 {
+                font-size: 1.6rem;
+            }
+            
+            .post-content h2 {
+                font-size: 1.4rem;
+            }
+            
+            .post-content h3 {
+                font-size: 1.2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Navigation -->
+        <nav class="nav-back">
+            <a href="../index.html" class="back-button">
+                ← Quay lại trang chủ
+            </a>
+        </nav>
+        
+        <!-- Post Header -->
+        <header class="post-header">
+            <div class="post-meta">
+                <span class="post-date">2025-01-27</span>
+                <span class="post-category">TIL</span>
+            </div>
+            
+            <h1 class="post-title">MLOps: Đưa Mô hình vào Sản xuất</h1>
+            
+            <div class="post-tags">
+                <span class="post-tag">mlops</span><span class="post-tag">machine learning</span><span class="post-tag">production</span><span class="post-tag">deployment</span><span class="post-tag">fastapi</span><span class="post-tag">docker</span><span class="post-tag">mlflow</span><span class="post-tag">devops</span><span class="post-tag">python</span>
+            </div>
+            
+            <div class="post-author">Bởi Huy Hiep Nguyen</div>
+        </header>
+        
+        <!-- Post Content -->
+        <article class="post-content">
+            <h1 id="mlops-ua-mo-hinh-vao-san-xuat">MLOps: Đưa Mô hình vào Sản xuất</h1>
+<p>Chào mừng bạn đến với thế giới của <strong>MLOps</strong> – nơi khoa học dữ liệu gặp gỡ kỹ thuật phần mềm. Nếu như <strong>Feature Engineering</strong> và <strong>Model Optimization</strong> là những bước quan trọng để tạo ra một mô hình xuất sắc, thì MLOps chính là quy trình đảm bảo mô hình đó không chỉ hoạt động tốt trong phòng thí nghiệm mà còn thực sự mang lại giá trị trong môi trường sản xuất.</p>
+<p>Bài blog này sẽ đi sâu vào MLOps, từ lý thuyết cơ bản, các bước chính trong một pipeline hoàn chỉnh, cho đến việc kết hợp các công cụ phổ biến để xây dựng một quy trình làm việc hiệu quả.</p>
+<h2 id="1-mlops-la-gi-va-tai-sao-lai-quan-trong"><strong>1. MLOps là gì và tại sao lại quan trọng?</strong></h2>
+<p><strong>MLOps (Machine Learning Operations)</strong> là một tập hợp các phương pháp, quy trình và công cụ được xây dựng để tự động hóa và quản lý vòng đời của một ứng dụng học máy. Nó là sự kết hợp giữa <strong>ML</strong>, <strong>DevOps</strong> và <strong>Data Engineering</strong>.</p>
+<table>
+<thead>
+<tr>
+<p><th style="text-align: left;">Đặc điểm</th></p>
+<p><th style="text-align: left;">DevOps</th></p>
+<p><th style="text-align: left;">MLOps</th></p>
+</tr>
+</thead>
+<tbody>
+<tr>
+<p><td style="text-align: left;"><strong>Code</strong></td></p>
+<p><td style="text-align: left;">Mã nguồn ứng dụng</td></p>
+<p><td style="text-align: left;">Mã nguồn mô hình, code xử lý dữ liệu, code huấn luyện</td></p>
+</tr>
+<tr>
+<p><td style="text-align: left;"><strong>Artifacts</strong></td></p>
+<p><td style="text-align: left;">Build (binary, .war, .jar)</td></p>
+<p><td style="text-align: left;">Mô hình đã huấn luyện, pipeline FE, trọng số</td></p>
+</tr>
+<tr>
+<p><td style="text-align: left;"><strong>Dependencies</strong></td></p>
+<p><td style="text-align: left;">Thư viện, framework</td></p>
+<p><td style="text-align: left;">Thư viện, framework, <strong>dữ liệu huấn luyện</strong></td></p>
+</tr>
+<tr>
+<p><td style="text-align: left;"><strong>Testing</strong></td></p>
+<p><td style="text-align: left;">Unit test, Integration test</td></p>
+<p><td style="text-align: left;">Unit test, Integration test, <strong>Model validation (test hiệu suất)</strong></td></p>
+</tr>
+<tr>
+<p><td style="text-align: left;"><strong>Monitoring</strong></td></p>
+<p><td style="text-align: left;">Giám sát hệ thống (uptime, log)</td></p>
+<p><td style="text-align: left;">Giám sát hệ thống, <strong>Giám sát hiệu suất mô hình, drift dữ liệu</strong></td></p>
+</tr>
+</tbody>
+</table>
+<p><strong>Tại sao MLOps quan trọng?</strong></p>
+<p>Trong quy trình truyền thống, một nhà khoa học dữ liệu có thể dành hàng tuần để huấn luyện một mô hình, nhưng việc đưa nó vào sản xuất lại mất hàng tháng. MLOps ra đời để giải quyết các thách thức này:</p>
+<ul>
+<li><strong>Tự động hóa:</strong> Tự động hóa việc huấn luyện, kiểm thử và triển khai mô hình.</li>
+<li><strong>Tái lập (Reproducibility):</strong> Đảm bảo bất kỳ ai cũng có thể tái tạo lại kết quả của một thử nghiệm.</li>
+<li><strong>Quản lý phiên bản:</strong> Kiểm soát chặt chẽ các phiên bản của cả code, dữ liệu và mô hình.</li>
+<li><strong>Giám sát:</strong> Phát hiện sớm các lỗi và sự suy giảm hiệu suất của mô hình trong môi trường thực tế.</li>
+<p></ul></p>
+<h2 id="2-cac-buoc-chinh-trong-mot-quy-trinh-mlops"><strong>2. Các bước chính trong một quy trình MLOps</strong></h2>
+<p>Một pipeline MLOps điển hình bao gồm các bước lặp lại sau:</p>
+<h3 id="1-quan-ly-du-lieu-va-phien-ban-data-versioning"><strong>1. Quản lý dữ liệu và phiên bản (Data Versioning)</strong></h3>
+<p>Dữ liệu là cốt lõi của ML. Việc theo dõi các phiên bản dữ liệu là rất quan trọng để đảm bảo tính tái lập. Các công cụ như <strong>DVC (Data Version Control)</strong> giúp bạn quản lý các tập dữ liệu lớn tương tự như cách Git quản lý code.</p>
+<h3 id="2-huan-luyen-va-theo-doi-mo-hinh-training-tracking"><strong>2. Huấn luyện và theo dõi mô hình (Training &amp; Tracking)</strong></h3>
+<ul>
+<li>Sử dụng các công cụ như <strong>MLflow</strong> hoặc <strong>Weights &amp; Biases</strong> để ghi lại toàn bộ thông tin của mỗi lần huấn luyện: tham số, metric đánh giá, và các file mô hình.</li>
+<li>MLflow đặc biệt hữu ích với khả năng <strong>MLflow Tracking</strong> giúp so sánh hiệu suất giữa các thử nghiệm khác nhau.</li>
+<p></ul></p>
+<h3 id="3-cicd-cho-mo-hinh-continuous-integrationcontinuous-deployment"><strong>3. CI/CD cho mô hình (Continuous Integration/Continuous Deployment)</strong></h3>
+<ul>
+<li><strong>CI (Continuous Integration):</strong> Tự động chạy kiểm thử khi code huấn luyện được commit.</li>
+<li><strong>CD (Continuous Deployment):</strong> Tự động triển khai mô hình tốt nhất vào môi trường thử nghiệm hoặc sản xuất.</li>
+<p></ul></p>
+<h3 id="4-kho-mo-hinh-va-kiem-thu-model-registry-validation"><strong>4. Kho mô hình và kiểm thử (Model Registry &amp; Validation)</strong></h3>
+<ul>
+<li><strong>Model Registry:</strong> Một kho lưu trữ tập trung (như MLflow Model Registry) giúp quản lý các phiên bản mô hình đã được phê duyệt.</li>
+<li><strong>Kiểm thử:</strong> Đảm bảo mô hình đáp ứng các tiêu chí hiệu suất đã định trước khi triển khai.</li>
+<p></ul></p>
+<h3 id="5-trien-khai-mo-hinh-deployment"><strong>5. Triển khai mô hình (Deployment)</strong></h3>
+<ul>
+<li><strong>Real-time API:</strong> Đóng gói mô hình thành một dịch vụ API (dùng <strong>FastAPI</strong>, Flask) để xử lý dự đoán ngay lập tức. Đây là phương pháp phổ biến cho các ứng dụng web hoặc di động.</li>
+<li><strong>Batch Prediction:</strong> Huấn luyện mô hình để dự đoán trên một lượng lớn dữ liệu theo lịch trình định kỳ.</li>
+<li><strong>Docker</strong> và <strong>Kubernetes</strong> là những công cụ không thể thiếu để đóng gói mô hình và quản lý việc triển khai trên quy mô lớn.</li>
+<p></ul></p>
+<h3 id="6-giam-sat-va-tai-huan-luyen-monitoring-retraining"><strong>6. Giám sát và tái huấn luyện (Monitoring &amp; Retraining)</strong></h3>
+<ul>
+<li>Đây là bước quan trọng nhất của MLOps. Chúng ta cần giám sát <strong>hiệu suất dự đoán</strong> của mô hình và <strong>phát hiện trôi dạt dữ liệu (data drift)</strong>.</li>
+<li>Khi hiệu suất mô hình suy giảm, một pipeline MLOps hoàn chỉnh sẽ tự động kích hoạt quá trình tái huấn luyện với dữ liệu mới.</li>
+<p></ul></p>
+<h2 id="3-vi-du-thuc-te-trien-khai-voi-fastapi-docker-mlflow"><strong>3. Ví dụ thực tế: Triển khai với FastAPI + Docker + MLflow</strong></h2>
+<p>Chúng ta sẽ xây dựng một pipeline đơn giản để triển khai một mô hình phân loại.</p>
+<h3 id="buoc-1-huan-luyen-va-ghi-lai-mo-hinh-voi-mlflow"><strong>Bước 1: Huấn luyện và ghi lại mô hình với MLflow</strong></h3>
+<div class="code-block long-code" data-language="python"><button class="copy-button" onclick="copyCode(this)">Copy</button><pre><code>import mlflow
+import mlflow.sklearn
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import train_test_split
+from sklearn.datasets import make_classification
+
+# Tạo dữ liệu giả
+X, y = make_classification(n_samples=1000, n_features=20, random_state=42)
+X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=42)
+
+# Bắt đầu một lần chạy MLflow
+with mlflow.start_run():
+    # Huấn luyện mô hình
+    model = RandomForestClassifier(n_estimators=100, max_depth=5, random_state=42)
+    model.fit(X_train, y_train)
+
+    # Ghi lại tham số và metric
+    mlflow.log_param(&quot;n_estimators&quot;, 100)
+    mlflow.log_metric(&quot;accuracy&quot;, model.score(X_test, y_test))
+
+    # Lưu mô hình vào MLflow
+    mlflow.sklearn.log_model(model, &quot;random_forest_model&quot;)
+
+    # Đăng ký mô hình vào Model Registry
+    mlflow.register_model(
+        model_uri=f&quot;runs:/{mlflow.active_run().info.run_id}/random_forest_model&quot;,
+        name=&quot;RandomForestClassifier&quot;
+    )
+<p></code></pre></div></p>
+<h3 id="buoc-2-xay-dung-api-voi-fastapi"><strong>Bước 2: Xây dựng API với FastAPI</strong></h3>
+<p>Sử dụng FastAPI để tạo một API dự đoán.</p>
+<div class="code-block long-code" data-language="python"><button class="copy-button" onclick="copyCode(this)">Copy</button><pre><code># file: app.py
+from fastapi import FastAPI
+import mlflow
+import mlflow.sklearn
+import numpy as np
+
+app = FastAPI()
+
+# Tải mô hình từ MLflow Model Registry
+model_name = &quot;RandomForestClassifier&quot;
+model_version = 1  # Sử dụng phiên bản mô hình mới nhất
+model = mlflow.pyfunc.load_model(model_uri=f&quot;models:/{model_name}/{model_version}&quot;)
+
+@app.post(&quot;/predict&quot;)
+def predict_endpoint(features: list):
+    # Chuyển đổi dữ liệu đầu vào sang định dạng numpy
+    features_array = np.array(features).reshape(1, -1)
+
+    # Dự đoán
+    prediction = model.predict(features_array).tolist()
+
+    return {&quot;prediction&quot;: prediction}
+<p></code></pre></div></p>
+<h3 id="buoc-3-dockerize-ung-dung"><strong>Bước 3: Dockerize ứng dụng</strong></h3>
+<p>Tạo một file <code>Dockerfile</code> để đóng gói API và mô hình vào một container.</p>
+<div class="code-block long-code" data-language="dockerfile"><button class="copy-button" onclick="copyCode(this)">Copy</button><pre><code># file: Dockerfile
+# Sử dụng base image Python
+FROM python:3.9-slim
+
+# Thiết lập thư mục làm việc
+WORKDIR /app
+
+# Cài đặt các thư viện cần thiết
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy mã nguồn và mô hình
+COPY app.py .
+
+# Cài đặt MLflow và tải mô hình trước đó để tối ưu hóa
+RUN pip install mlflow[skinny]
+RUN mlflow models download -m models:/RandomForestClassifier/1 --dst-path /app/model
+
+# Khởi chạy ứng dụng với Gunicorn và Uvicorn
+CMD [&quot;uvicorn&quot;, &quot;app:app&quot;, &quot;--host&quot;, &quot;0.0.0.0&quot;, &quot;--port&quot;, &quot;8000&quot;]
+<p></code></pre></div></p>
+<h2 id="4-thach-thuc-va-giai-phap"><strong>4. Thách thức và Giải pháp</strong></h2>
+<h3 id="1-drift-du-lieu"><strong>1. Drift dữ liệu</strong></h3>
+<p>Hiệu suất mô hình có thể suy giảm khi phân phối của dữ liệu đầu vào (data drift) hoặc mối quan hệ giữa các biến (concept drift) thay đổi.</p>
+<p><strong>Giải pháp:</strong> Sử dụng các công cụ giám sát như <strong>Evidently AI</strong> hoặc <strong>WhyLabs</strong> để tự động phát hiện drift và gửi cảnh báo.</p>
+<h3 id="2-ong-bo-du-lieu"><strong>2. Đồng bộ dữ liệu</strong></h3>
+<p>Đảm bảo rằng các bước tiền xử lý trong pipeline huấn luyện giống hệt với bước tiền xử lý trong API dự đoán.</p>
+<p><strong>Giải pháp:</strong> Đóng gói toàn bộ pipeline (bao gồm cả các bước preprocessing) bằng Scikit-learn Pipeline và lưu trữ nó bằng MLflow. Điều này đảm bảo tính nhất quán giữa hai môi trường.</p>
+<h3 id="3-quan-ly-phien-ban"><strong>3. Quản lý phiên bản</strong></h3>
+<p>Vấn đề có thể phát sinh khi có nhiều phiên bản của mô hình và dữ liệu đang tồn tại.</p>
+<p><strong>Giải pháp:</strong> Sử dụng <strong>DVC</strong> để theo dõi phiên bản dữ liệu và <strong>MLflow Model Registry</strong> để quản lý các phiên bản mô hình một cách tập trung, dễ dàng rollback hoặc triển khai các phiên bản cũ.</p>
+<h2 id="ket-luan"><strong>Kết luận</strong></h2>
+<p>MLOps không phải là một lựa chọn mà là một yêu cầu tất yếu để các dự án học máy thành công và mang lại giá trị bền vững. Nó tạo ra một vòng lặp liên tục giữa huấn luyện, triển khai và giám sát, đảm bảo rằng các mô hình của chúng ta luôn được cập nhật và hoạt động hiệu quả trong môi trường thực tế. </p>
+        </article>
+    </div>
+    
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-text">
+                <div class="copyright">© 2025 Hiep Nguyen</div>
+                <div class="tagline">Vietnamese soul, global impact</div>
+                <div class="version">Est. 1997 | Version 27.0 (and counting!)</div>
+            </div>
+        </div>
+    </footer>
+    
+    <script>
+        // Copy code functionality
+        function copyCode(button) {
+            const codeBlock = button.parentElement;
+            const code = codeBlock.querySelector('code').textContent;
+            
+            navigator.clipboard.writeText(code).then(function() {
+                // Change button text temporarily
+                const originalText = button.textContent;
+                button.textContent = 'Copied!';
+                button.style.background = '#238636';
+                button.style.color = '#ffffff';
+                
+                setTimeout(function() {
+                    button.textContent = originalText;
+                    button.style.background = '#30363d';
+                    button.style.color = '#8b949e';
+                }, 2000);
+            }).catch(function(err) {
+                console.error('Could not copy text: ', err);
+                button.textContent = 'Failed';
+                button.style.background = '#da3633';
+                button.style.color = '#ffffff';
+            });
+        }
+        
+        // Disable syntax highlighting to avoid conflicts
+        // Code blocks will display with basic styling only
+    </script>
+</body>
+</html>

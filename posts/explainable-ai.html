@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Explainable AI: Làm cho AI trở nên minh bạch - Blog của Hiệp</title>
+    <meta name="description" content="Hướng dẫn chuyên sâu về Explainable AI (XAI) - làm cho các mô hình AI trở nên minh bạch và dễ hiểu, từ lý thuyết đến thực hành với SHAP và LIME.">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- MathJax for mathematical formulas -->
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            },
+            svg: {
+                fontCache: 'global'
+            }
+        };
+    </script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #1f1f1f;
+            background-image: 
+                radial-gradient(circle at 25% 25%, rgba(255,255,255,0.04) 0%, transparent 50%),
+                radial-gradient(circle at 75% 75%, rgba(255,255,255,0.04) 0%, transparent 50%);
+            color: #ffffff;
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            flex: 1;
+        }
+        
+        /* Navigation */
+        .nav-back {
+            margin-bottom: 40px;
+        }
+        
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: #64ffda;
+            text-decoration: none;
+            font-weight: 500;
+            padding: 10px 20px;
+            border: 1px solid #64ffda;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+            background: rgba(100, 255, 218, 0.1);
+        }
+        
+        .back-button:hover {
+            background: #64ffda;
+            color: #1f1f1f;
+            transform: translateY(-2px);
+        }
+        
+        /* Post Header */
+        .post-header {
+            margin-bottom: 40px;
+            padding-bottom: 30px;
+            border-bottom: 1px solid #233554;
+        }
+        
+        .post-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .post-date {
+            color: #8892b0;
+            font-size: 0.9rem;
+        }
+        
+        .post-category {
+            background: #64ffda;
+            color: #1f1f1f;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        
+        .post-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 20px;
+            line-height: 1.2;
+        }
+        
+        .post-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .post-tag {
+            background: rgba(100, 255, 218, 0.1);
+            color: #64ffda;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            border: 1px solid rgba(100, 255, 218, 0.2);
+        }
+        
+        .post-author {
+            color: #64ffda;
+            font-weight: 500;
+            font-size: 1.1rem;
+        }
+        
+        /* Post Content */
+        .post-content {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            color: #e6e6e6;
+        }
+        
+        .post-content h1, .post-content h2, .post-content h3, .post-content h4, .post-content h5, .post-content h6 {
+            color: #ffffff;
+            margin: 40px 0 20px 0;
+            font-weight: 600;
+        }
+        
+        .post-content h1 {
+            font-size: 2rem;
+        }
+        
+        .post-content h2 {
+            font-size: 1.8rem;
+        }
+        
+        .post-content h3 {
+            font-size: 1.5rem;
+        }
+        
+        .post-content p {
+            margin-bottom: 20px;
+        }
+        
+        .post-content ul, .post-content ol {
+            margin: 20px 0;
+            padding-left: 30px;
+        }
+        
+        .post-content li {
+            margin-bottom: 10px;
+        }
+        
+        .post-content strong {
+            color: #64ffda;
+            font-weight: 600;
+        }
+        
+        .post-content em {
+            color: #8892b0;
+            font-style: italic;
+        }
+        
+        .post-content hr {
+            border: none;
+            border-top: 1px solid #233554;
+            margin: 40px 0;
+        }
+        
+        .post-content blockquote {
+            border-left: 4px solid #64ffda;
+            padding-left: 20px;
+            margin: 20px 0;
+            color: #8892b0;
+            font-style: italic;
+        }
+        
+        /* Math and Image styles */
+        .math-formula {
+            margin: 20px 0;
+            text-align: center;
+            overflow-x: auto;
+        }
+        
+        .math-formula.inline {
+            display: inline;
+            margin: 0 5px;
+        }
+        
+        .post-image {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            margin: 20px 0;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+        
+        .post-image-container {
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        .post-image-caption {
+            font-size: 0.9rem;
+            color: #8892b0;
+            margin-top: 8px;
+            font-style: italic;
+        }
+        
+        .code-block {
+            background: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            padding: 12px;
+            margin: 16px 0;
+            overflow-x: auto;
+            font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', 'Source Code Pro', monospace;
+            font-size: 0.85rem;
+            line-height: 1.4;
+            position: relative;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+        
+        .code-block::before {
+            content: attr(data-language);
+            position: absolute;
+            top: 0;
+            right: 12px;
+            background: #30363d;
+            color: #8b949e;
+            padding: 2px 8px;
+            font-size: 0.75rem;
+            border-radius: 0 0 4px 4px;
+            text-transform: uppercase;
+            font-weight: 500;
+        }
+        
+        .code-block pre {
+            margin: 0;
+            color: #c9d1d9;
+        }
+        
+        .code-block code {
+            color: #c9d1d9;
+        }
+        
+        /* Syntax highlighting colors */
+        .code-block .keyword {
+            color: #ff7b72;
+        }
+        
+        .code-block .string {
+            color: #a5d6ff;
+        }
+        
+        .code-block .comment {
+            color: #8b949e;
+            font-style: italic;
+        }
+        
+        .code-block .function {
+            color: #d2a8ff;
+        }
+        
+        .code-block .number {
+            color: #79c0ff;
+        }
+        
+        .code-block .operator {
+            color: #ff7b72;
+        }
+        
+        /* Inline code */
+        .post-content code:not(.code-block code) {
+            background: rgba(110, 118, 129, 0.4);
+            color: #c9d1d9;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 0.85em;
+            font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', 'Source Code Pro', monospace;
+        }
+        
+        /* Table Styles */
+        .post-content table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 2rem 0;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .post-content thead {
+            background: rgba(100, 255, 218, 0.1);
+        }
+        
+        .post-content th {
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+            color: #64ffda;
+            border-bottom: 2px solid rgba(100, 255, 218, 0.3);
+        }
+        
+        .post-content td {
+            padding: 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            color: #e0e0e0;
+        }
+        
+        .post-content tr:hover {
+            background: rgba(255, 255, 255, 0.02);
+        }
+        
+        .post-content tbody tr:last-child td {
+            border-bottom: none;
+        }
+        
+        /* Copy button for code blocks */
+        .code-block {
+            position: relative;
+        }
+        
+        .copy-button {
+            position: absolute;
+            top: 8px;
+            right: 40px;
+            background: #30363d;
+            color: #8b949e;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+        
+        .code-block:hover .copy-button {
+            opacity: 1;
+        }
+        
+        .copy-button:hover {
+            background: #484f58;
+            color: #c9d1d9;
+        }
+        
+        /* Line numbers for long code blocks */
+        .code-block.long-code {
+            counter-reset: line;
+        }
+        
+        .code-block.long-code pre {
+            display: flex;
+        }
+        
+        .code-block.long-code code {
+            counter-increment: line;
+            display: block;
+            padding-left: 3.5em;
+            position: relative;
+        }
+        
+        .code-block.long-code code::before {
+            content: counter(line);
+            position: absolute;
+            left: 0;
+            width: 2.5em;
+            text-align: right;
+            color: #484f58;
+            font-size: 0.9em;
+            padding-right: 1em;
+            border-right: 1px solid #30363d;
+        }
+        
+        .highlight-box {
+            background: rgba(100, 255, 218, 0.1);
+            border-left: 4px solid #64ffda;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .warning-box {
+            background: rgba(255, 193, 7, 0.1);
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .info-box {
+            background: rgba(13, 202, 240, 0.1);
+            border-left: 4px solid #0dcaf0;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        /* Footer */
+        .footer {
+            background: #1f1f1f;
+            background-image: 
+                radial-gradient(circle at 25% 25%, rgba(255,255,255,0.04) 0%, transparent 50%),
+                radial-gradient(circle at 75% 75%, rgba(255,255,255,0.04) 0%, transparent 50%);
+            border-top: 1px solid rgba(255, 255, 255, 0.03);
+            padding: 40px 0;
+            margin-top: 60px;
+            text-align: center;
+            position: relative;
+            width: 100vw;
+            margin-left: calc(-50vw + 50%);
+        }
+        
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 8vw;
+            text-align: center;
+        }
+        
+        .footer-text {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            align-items: center;
+        }
+        
+        .copyright {
+            font-size: 18px;
+            font-weight: 600;
+            color: #ffffff;
+            letter-spacing: 0.5px;
+        }
+        
+        .tagline {
+            font-size: 16px;
+            color: #888;
+            font-style: italic;
+            margin: 4px 0;
+        }
+        
+        .version {
+            font-size: 14px;
+            color: #666;
+            font-family: 'Courier New', monospace;
+            letter-spacing: 0.3px;
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px 15px;
+            }
+            
+            .post-title {
+                font-size: 2rem;
+            }
+            
+            .post-content {
+                font-size: 1rem;
+            }
+            
+            .post-content h1 {
+                font-size: 1.8rem;
+            }
+            
+            .post-content h2 {
+                font-size: 1.6rem;
+            }
+            
+            .post-content h3 {
+                font-size: 1.4rem;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .post-title {
+                font-size: 1.8rem;
+            }
+            
+            .post-content {
+                font-size: 0.95rem;
+            }
+            
+            .post-content h1 {
+                font-size: 1.6rem;
+            }
+            
+            .post-content h2 {
+                font-size: 1.4rem;
+            }
+            
+            .post-content h3 {
+                font-size: 1.2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Navigation -->
+        <nav class="nav-back">
+            <a href="../index.html" class="back-button">
+                ← Quay lại trang chủ
+            </a>
+        </nav>
+        
+        <!-- Post Header -->
+        <header class="post-header">
+            <div class="post-meta">
+                <span class="post-date">2025-01-27</span>
+                <span class="post-category">TIL</span>
+            </div>
+            
+            <h1 class="post-title">Explainable AI: Làm cho AI trở nên minh bạch</h1>
+            
+            <div class="post-tags">
+                <span class="post-tag">explainable ai</span><span class="post-tag">xai</span><span class="post-tag">shap</span><span class="post-tag">lime</span><span class="post-tag">machine learning</span><span class="post-tag">interpretability</span><span class="post-tag">transparency</span><span class="post-tag">python</span>
+            </div>
+            
+            <div class="post-author">Bởi Huy Hiep Nguyen</div>
+        </header>
+        
+        <!-- Post Content -->
+        <article class="post-content">
+            <h1 id="explainable-ai-lam-cho-ai-tro-nen-minh-bach">Explainable AI: Làm cho AI trở nên minh bạch</h1>
+<p>Chào mừng bạn đến với thế giới của <strong>Explainable AI (XAI)</strong>! Trong kỷ nguyên của học máy, việc xây dựng một mô hình đưa ra dự đoán chính xác thôi là chưa đủ. Các mô hình phức tạp thường hoạt động như những "hộp đen", và việc hiểu <strong>tại sao</strong> chúng lại đưa ra một quyết định cụ thể ngày càng trở nên quan trọng.</p>
+<p>Bài blog này sẽ đi sâu vào XAI, từ việc phân loại các phương pháp giải thích cho đến việc hướng dẫn sử dụng các công cụ mạnh mẽ như <strong>SHAP</strong> và <strong>LIME</strong> với code ví dụ cụ thể.</p>
+<h2 id="1-xai-tai-sao-lai-can-hop-en-phai-len-tieng"><strong>1. XAI: Tại sao lại cần "Hộp đen" phải lên tiếng?</strong></h2>
+<p><strong>Explainable AI (XAI)</strong> là một lĩnh vực của học máy tập trung vào việc làm cho các mô hình AI trở nên minh bạch và dễ hiểu hơn. Mục tiêu chính là để con người có thể hiểu, tin tưởng và kiểm soát các quyết định của AI.</p>
+<p><strong>Tầm quan trọng của XAI:</strong></p>
+<ul>
+<li><strong>Minh bạch và Đạo đức:</strong> Trong các lĩnh vực nhạy cảm như tài chính (quyết định cho vay) hay y tế (chẩn đoán bệnh), việc hiểu lý do mô hình đưa ra một quyết định là bắt buộc để đảm bảo sự công bằng và tuân thủ các quy định.</li>
+<li><strong>Gỡ lỗi và Cải thiện:</strong> Khi mô hình hoạt động sai, việc biết được các đặc trưng nào đang gây ảnh hưởng tiêu cực sẽ giúp các kỹ sư nhanh chóng gỡ lỗi và cải thiện mô hình.</li>
+<li><strong>Xây dựng niềm tin:</strong> Người dùng và các bên liên quan sẽ tin tưởng hơn vào một hệ thống AI khi họ có thể hiểu được logic đằng sau các quyết định của nó.</li>
+<p></ul></p>
+<h2 id="2-phan-loai-cac-phuong-phap-giai-thich"><strong>2. Phân loại các Phương pháp Giải thích</strong></h2>
+<p>Có hai cách tiếp cận chính để giải thích mô hình:</p>
+<ul>
+<li>
+<p><strong>Mô hình có thể giải thích nội tại (Interpretable Models):</strong> Đây là những mô hình có cấu trúc đơn giản, cho phép chúng ta trực tiếp hiểu cách chúng hoạt động.</p>
+<p></li></p>
+<li>
+<p><strong>Ví dụ:</strong> Hồi quy tuyến tính (Linear Regression), Cây quyết định (Decision Tree). Các mô hình này được coi là "hộp trắng" vì chúng ta có thể nhìn thấy và hiểu logic bên trong.</p>
+<p></li></p>
+<li>
+<p><strong>Phương pháp giải thích hậu kiểm (Post-hoc Explanations):</strong> Đây là các kỹ thuật được áp dụng sau khi mô hình đã được huấn luyện. Chúng hoạt động với các mô hình "hộp đen" phức tạp và đưa ra các giải thích. Các phương pháp này được chia thành:</p>
+<p></li></p>
+<li>
+<p><strong>Giải thích toàn cục (Global Explanations):</strong> Giải thích cách mô hình hoạt động trên toàn bộ tập dữ liệu.</p>
+<p></li></p>
+<li><strong>Giải thích cục bộ (Local Explanations):</strong> Giải thích dự đoán của mô hình cho một trường hợp cụ thể.</li>
+<p></ul></p>
+<h2 id="3-cac-ky-thuat-xai-pho-bien-va-vi-du-code"><strong>3. Các Kỹ thuật XAI Phổ biến và Ví dụ Code</strong></h2>
+<p>Chúng ta sẽ sử dụng một mô hình <strong>Random Forest</strong> (một "hộp đen") để minh họa các kỹ thuật giải thích.</p>
+<div class="code-block long-code" data-language="python"><button class="copy-button" onclick="copyCode(this)">Copy</button><pre><code>import pandas as pd
+import numpy as np
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import train_test_split
+from sklearn.datasets import make_classification
+import shap
+
+# Tạo dữ liệu giả
+X, y = make_classification(n_samples=1000, n_features=10, n_informative=5, random_state=42)
+feature_names = [f'feature_{i}' for i in range(10)]
+X_df = pd.DataFrame(X, columns=feature_names)
+y_df = pd.Series(y, name='target')
+
+# Chia dữ liệu
+X_train, X_test, y_train, y_test = train_test_split(X_df, y_df, test_size=0.2, random_state=42)
+
+# Huấn luyện mô hình Random Forest
+model = RandomForestClassifier(n_estimators=100, max_depth=5, random_state=42)
+model.fit(X_train, y_train)
+<p></code></pre></div></p>
+<h3 id="31-giai-thich-toan-cuc-global-explanations"><strong>3.1. Giải thích Toàn cục (Global Explanations)</strong></h3>
+<h4 id="a-feature-importance-o-quan-trong-cua-ac-trung"><strong>a. Feature Importance (Độ quan trọng của Đặc trưng)</strong></h4>
+<p>Đây là một trong những phương pháp giải thích đơn giản và phổ biến nhất, có sẵn trong nhiều mô hình dạng cây.</p>
+<div class="code-block" data-language="python"><button class="copy-button" onclick="copyCode(this)">Copy</button><pre><code># Lấy độ quan trọng của đặc trưng từ mô hình
+importances = model.feature_importances_
+feature_importance_df = pd.DataFrame({
+    'feature': feature_names, 
+    'importance': importances
+}).sort_values('importance', ascending=False)
+
+print(&quot;Độ quan trọng của đặc trưng (Feature Importance):&quot;)
+print(feature_importance_df)
+<p></code></pre></div></p>
+<p><strong>Giải thích:</strong> Kết quả cho thấy đặc trưng nào có ảnh hưởng lớn nhất đến dự đoán của mô hình trên toàn bộ tập dữ liệu.</p>
+<h4 id="b-partial-dependence-plots-pdp-va-individual-conditional-expectation-ice"><strong>b. Partial Dependence Plots (PDP) và Individual Conditional Expectation (ICE)</strong></h4>
+<ul>
+<li><strong>PDP:</strong> Cho chúng ta biết một đặc trưng ảnh hưởng trung bình đến dự đoán của mô hình như thế nào.</li>
+<li><strong>ICE:</strong> Tương tự PDP nhưng vẽ một đường riêng cho mỗi mẫu dữ liệu, giúp phát hiện các mối quan hệ phức tạp mà PDP có thể bỏ qua.</li>
+<p></ul></p>
+<div class="code-block" data-language="python"><button class="copy-button" onclick="copyCode(this)">Copy</button><pre><code>from sklearn.inspection import partial_dependence, plot_partial_dependence
+import matplotlib.pyplot as plt
+
+# Vẽ PDP cho 2 đặc trưng quan trọng nhất
+fig, ax = plt.subplots(figsize=(10, 5))
+plot_partial_dependence(model, X_train, features=['feature_4', 'feature_7'], ax=ax)
+fig.suptitle(&quot;Partial Dependence Plots (PDP)&quot;)
+plt.show()
+<p></code></pre></div></p>
+<p><strong>Giải thích:</strong> Đồ thị trên cho thấy khi giá trị của <code>feature_4</code> tăng lên, xác suất dự đoán là lớp 1 cũng tăng.</p>
+<h3 id="32-giai-thich-cuc-bo-local-explanations"><strong>3.2. Giải thích Cục bộ (Local Explanations)</strong></h3>
+<h4 id="a-shap-shapley-additive-explanations"><strong>a. SHAP (SHapley Additive exPlanations)</strong></h4>
+<p>SHAP là một kỹ thuật mạnh mẽ dựa trên lý thuyết trò chơi, gán một giá trị cho mỗi đặc trưng cho biết mức độ đóng góp của nó vào dự đoán. SHAP có thể giải thích cả cục bộ và toàn cục.</p>
+<div class="code-block" data-language="python"><button class="copy-button" onclick="copyCode(this)">Copy</button><pre><code># Sử dụng TreeExplainer của SHAP cho mô hình cây
+explainer = shap.TreeExplainer(model)
+shap_values = explainer.shap_values(X_test)
+
+# Giải thích dự đoán cho một mẫu cụ thể (mẫu thứ 5 trong tập kiểm tra)
+sample_index = 5
+print(f&quot;Dự đoán của mô hình cho mẫu {sample_index}: {model.predict(X_test.iloc[[sample_index]])[0]}&quot;)
+shap.initjs()
+shap.force_plot(explainer.expected_value[1], shap_values[1][sample_index], X_test.iloc[[sample_index]])
+<p></code></pre></div></p>
+<p><strong>Giải thích:</strong> <strong>Force Plot</strong> trên cho thấy các đặc trưng màu đỏ (<code>feature_7</code>, <code>feature_4</code>) đang "đẩy" dự đoán của mô hình về phía lớp 1, trong khi các đặc trưng màu xanh (<code>feature_5</code>, <code>feature_8</code>) đang "đẩy" về phía lớp 0.</p>
+<h4 id="b-lime-local-interpretable-model-agnostic-explanations"><strong>b. LIME (Local Interpretable Model-agnostic Explanations)</strong></h4>
+<p>LIME hoạt động bằng cách tạo ra một mô hình đơn giản (như hồi quy tuyến tính) xung quanh một điểm dữ liệu cụ thể để giải thích dự đoán của mô hình phức tạp.</p>
+<div class="code-block long-code" data-language="python"><button class="copy-button" onclick="copyCode(this)">Copy</button><pre><code>from lime.lime_tabular import LimeTabularExplainer
+
+# Tạo đối tượng LIME explainer
+explainer = LimeTabularExplainer(
+    training_data=np.array(X_train),
+    feature_names=feature_names,
+    class_names=['Class 0', 'Class 1'],
+    mode='classification'
+)
+
+# Giải thích dự đoán cho cùng một mẫu
+exp = explainer.explain_instance(
+    data_row=X_test.iloc[sample_index].values,
+    predict_fn=model.predict_proba,
+    num_features=5
+)
+
+# Hiển thị kết quả trên giao diện
+exp.show_in_notebook(show_table=True)
+<p></code></pre></div></p>
+<p><strong>Giải thích:</strong> LIME sẽ chỉ ra những đặc trưng nào có ảnh hưởng nhất đến quyết định của mô hình đối với một mẫu cụ thể, kèm theo trọng số (trọng số càng lớn, ảnh hưởng càng mạnh).</p>
+<h2 id="4-thach-thuc-khi-ap-dung-xai"><strong>4. Thách thức khi áp dụng XAI</strong></h2>
+<ol>
+<li><strong>Hiệu suất và Khả năng mở rộng:</strong> Các kỹ thuật như SHAP rất tốn kém về mặt tính toán, đặc biệt với các mô hình phức tạp và tập dữ liệu lớn.</li>
+<li><strong>Sự hiểu nhầm (Misinterpretation):</strong> Các giải thích của XAI có thể bị hiểu nhầm. Ví dụ, một giải thích cục bộ không thể suy rộng ra toàn bộ mô hình.</li>
+<li><strong>Thiên vị (Bias):</strong> Nếu mô hình ban đầu đã có bias, các công cụ XAI có thể chỉ giải thích cách bias đó hoạt động, chứ không tự động loại bỏ nó.</li>
+<li><strong>Tính ổn định (Stability):</strong> Một số phương pháp giải thích có thể không ổn định, đưa ra các kết quả khác nhau cho cùng một mẫu dữ liệu.</li>
+<p></ol></p>
+<h2 id="ket-luan"><strong>Kết luận</strong></h2>
+<p>XAI không phải là một viên thuốc thần kỳ để làm cho mọi mô hình trở nên hoàn hảo, mà là một công cụ mạnh mẽ để chúng ta có thể làm việc hiệu quả hơn với các hệ thống AI phức tạp. Nắm vững các kỹ thuật như SHAP và LIME sẽ giúp bạn không chỉ xây dựng được các mô hình chính xác mà còn có thể giải thích, gỡ lỗi và xây dựng niềm tin cho người dùng.</p>
+<p>Trong tương lai, XAI sẽ tiếp tục là một yếu tố không thể thiếu trong mọi quy trình phát triển học máy, hướng tới một kỷ nguyên AI minh bạch và đáng tin cậy hơn. </p>
+        </article>
+    </div>
+    
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-text">
+                <div class="copyright">© 2025 Hiep Nguyen</div>
+                <div class="tagline">Vietnamese soul, global impact</div>
+                <div class="version">Est. 1997 | Version 27.0 (and counting!)</div>
+            </div>
+        </div>
+    </footer>
+    
+    <script>
+        // Copy code functionality
+        function copyCode(button) {
+            const codeBlock = button.parentElement;
+            const code = codeBlock.querySelector('code').textContent;
+            
+            navigator.clipboard.writeText(code).then(function() {
+                // Change button text temporarily
+                const originalText = button.textContent;
+                button.textContent = 'Copied!';
+                button.style.background = '#238636';
+                button.style.color = '#ffffff';
+                
+                setTimeout(function() {
+                    button.textContent = originalText;
+                    button.style.background = '#30363d';
+                    button.style.color = '#8b949e';
+                }, 2000);
+            }).catch(function(err) {
+                console.error('Could not copy text: ', err);
+                button.textContent = 'Failed';
+                button.style.background = '#da3633';
+                button.style.color = '#ffffff';
+            });
+        }
+        
+        // Disable syntax highlighting to avoid conflicts
+        // Code blocks will display with basic styling only
+    </script>
+</body>
+</html>

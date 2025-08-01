@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Supervised Learning và Unsupervised Learning: Khám phá các loại hình Học máy - Blog của Hiệp</title>
+    <meta name="description" content="Hướng dẫn chuyên sâu về các loại hình học máy: Supervised, Unsupervised và Semi-supervised Learning, từ lý thuyết đến ứng dụng thực tế với các thuật toán clustering, dimensionality reduction và anomaly detection.">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- MathJax for mathematical formulas -->
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            },
+            svg: {
+                fontCache: 'global'
+            }
+        };
+    </script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #1f1f1f;
+            background-image: 
+                radial-gradient(circle at 25% 25%, rgba(255,255,255,0.04) 0%, transparent 50%),
+                radial-gradient(circle at 75% 75%, rgba(255,255,255,0.04) 0%, transparent 50%);
+            color: #ffffff;
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            flex: 1;
+        }
+        
+        /* Navigation */
+        .nav-back {
+            margin-bottom: 40px;
+        }
+        
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: #64ffda;
+            text-decoration: none;
+            font-weight: 500;
+            padding: 10px 20px;
+            border: 1px solid #64ffda;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+            background: rgba(100, 255, 218, 0.1);
+        }
+        
+        .back-button:hover {
+            background: #64ffda;
+            color: #1f1f1f;
+            transform: translateY(-2px);
+        }
+        
+        /* Post Header */
+        .post-header {
+            margin-bottom: 40px;
+            padding-bottom: 30px;
+            border-bottom: 1px solid #233554;
+        }
+        
+        .post-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .post-date {
+            color: #8892b0;
+            font-size: 0.9rem;
+        }
+        
+        .post-category {
+            background: #64ffda;
+            color: #1f1f1f;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        
+        .post-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 20px;
+            line-height: 1.2;
+        }
+        
+        .post-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .post-tag {
+            background: rgba(100, 255, 218, 0.1);
+            color: #64ffda;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            border: 1px solid rgba(100, 255, 218, 0.2);
+        }
+        
+        .post-author {
+            color: #64ffda;
+            font-weight: 500;
+            font-size: 1.1rem;
+        }
+        
+        /* Post Content */
+        .post-content {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            color: #e6e6e6;
+        }
+        
+        .post-content h1, .post-content h2, .post-content h3, .post-content h4, .post-content h5, .post-content h6 {
+            color: #ffffff;
+            margin: 40px 0 20px 0;
+            font-weight: 600;
+        }
+        
+        .post-content h1 {
+            font-size: 2rem;
+        }
+        
+        .post-content h2 {
+            font-size: 1.8rem;
+        }
+        
+        .post-content h3 {
+            font-size: 1.5rem;
+        }
+        
+        .post-content p {
+            margin-bottom: 20px;
+        }
+        
+        .post-content ul, .post-content ol {
+            margin: 20px 0;
+            padding-left: 30px;
+        }
+        
+        .post-content li {
+            margin-bottom: 10px;
+        }
+        
+        .post-content strong {
+            color: #64ffda;
+            font-weight: 600;
+        }
+        
+        .post-content em {
+            color: #8892b0;
+            font-style: italic;
+        }
+        
+        .post-content hr {
+            border: none;
+            border-top: 1px solid #233554;
+            margin: 40px 0;
+        }
+        
+        .post-content blockquote {
+            border-left: 4px solid #64ffda;
+            padding-left: 20px;
+            margin: 20px 0;
+            color: #8892b0;
+            font-style: italic;
+        }
+        
+        /* Math and Image styles */
+        .math-formula {
+            margin: 20px 0;
+            text-align: center;
+            overflow-x: auto;
+        }
+        
+        .math-formula.inline {
+            display: inline;
+            margin: 0 5px;
+        }
+        
+        .post-image {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            margin: 20px 0;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+        
+        .post-image-container {
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        .post-image-caption {
+            font-size: 0.9rem;
+            color: #8892b0;
+            margin-top: 8px;
+            font-style: italic;
+        }
+        
+        .code-block {
+            background: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            padding: 12px;
+            margin: 16px 0;
+            overflow-x: auto;
+            font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', 'Source Code Pro', monospace;
+            font-size: 0.85rem;
+            line-height: 1.4;
+            position: relative;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+        
+        .code-block::before {
+            content: attr(data-language);
+            position: absolute;
+            top: 0;
+            right: 12px;
+            background: #30363d;
+            color: #8b949e;
+            padding: 2px 8px;
+            font-size: 0.75rem;
+            border-radius: 0 0 4px 4px;
+            text-transform: uppercase;
+            font-weight: 500;
+        }
+        
+        .code-block pre {
+            margin: 0;
+            color: #c9d1d9;
+        }
+        
+        .code-block code {
+            color: #c9d1d9;
+        }
+        
+        /* Syntax highlighting colors */
+        .code-block .keyword {
+            color: #ff7b72;
+        }
+        
+        .code-block .string {
+            color: #a5d6ff;
+        }
+        
+        .code-block .comment {
+            color: #8b949e;
+            font-style: italic;
+        }
+        
+        .code-block .function {
+            color: #d2a8ff;
+        }
+        
+        .code-block .number {
+            color: #79c0ff;
+        }
+        
+        .code-block .operator {
+            color: #ff7b72;
+        }
+        
+        /* Inline code */
+        .post-content code:not(.code-block code) {
+            background: rgba(110, 118, 129, 0.4);
+            color: #c9d1d9;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 0.85em;
+            font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', 'Source Code Pro', monospace;
+        }
+        
+        /* Table Styles */
+        .post-content table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 2rem 0;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .post-content thead {
+            background: rgba(100, 255, 218, 0.1);
+        }
+        
+        .post-content th {
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+            color: #64ffda;
+            border-bottom: 2px solid rgba(100, 255, 218, 0.3);
+        }
+        
+        .post-content td {
+            padding: 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            color: #e0e0e0;
+        }
+        
+        .post-content tr:hover {
+            background: rgba(255, 255, 255, 0.02);
+        }
+        
+        .post-content tbody tr:last-child td {
+            border-bottom: none;
+        }
+        
+        /* Copy button for code blocks */
+        .code-block {
+            position: relative;
+        }
+        
+        .copy-button {
+            position: absolute;
+            top: 8px;
+            right: 40px;
+            background: #30363d;
+            color: #8b949e;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+        
+        .code-block:hover .copy-button {
+            opacity: 1;
+        }
+        
+        .copy-button:hover {
+            background: #484f58;
+            color: #c9d1d9;
+        }
+        
+        /* Line numbers for long code blocks */
+        .code-block.long-code {
+            counter-reset: line;
+        }
+        
+        .code-block.long-code pre {
+            display: flex;
+        }
+        
+        .code-block.long-code code {
+            counter-increment: line;
+            display: block;
+            padding-left: 3.5em;
+            position: relative;
+        }
+        
+        .code-block.long-code code::before {
+            content: counter(line);
+            position: absolute;
+            left: 0;
+            width: 2.5em;
+            text-align: right;
+            color: #484f58;
+            font-size: 0.9em;
+            padding-right: 1em;
+            border-right: 1px solid #30363d;
+        }
+        
+        .highlight-box {
+            background: rgba(100, 255, 218, 0.1);
+            border-left: 4px solid #64ffda;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .warning-box {
+            background: rgba(255, 193, 7, 0.1);
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .info-box {
+            background: rgba(13, 202, 240, 0.1);
+            border-left: 4px solid #0dcaf0;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        /* Footer */
+        .footer {
+            background: #1f1f1f;
+            background-image: 
+                radial-gradient(circle at 25% 25%, rgba(255,255,255,0.04) 0%, transparent 50%),
+                radial-gradient(circle at 75% 75%, rgba(255,255,255,0.04) 0%, transparent 50%);
+            border-top: 1px solid rgba(255, 255, 255, 0.03);
+            padding: 40px 0;
+            margin-top: 60px;
+            text-align: center;
+            position: relative;
+            width: 100vw;
+            margin-left: calc(-50vw + 50%);
+        }
+        
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 8vw;
+            text-align: center;
+        }
+        
+        .footer-text {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            align-items: center;
+        }
+        
+        .copyright {
+            font-size: 18px;
+            font-weight: 600;
+            color: #ffffff;
+            letter-spacing: 0.5px;
+        }
+        
+        .tagline {
+            font-size: 16px;
+            color: #888;
+            font-style: italic;
+            margin: 4px 0;
+        }
+        
+        .version {
+            font-size: 14px;
+            color: #666;
+            font-family: 'Courier New', monospace;
+            letter-spacing: 0.3px;
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px 15px;
+            }
+            
+            .post-title {
+                font-size: 2rem;
+            }
+            
+            .post-content {
+                font-size: 1rem;
+            }
+            
+            .post-content h1 {
+                font-size: 1.8rem;
+            }
+            
+            .post-content h2 {
+                font-size: 1.6rem;
+            }
+            
+            .post-content h3 {
+                font-size: 1.4rem;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .post-title {
+                font-size: 1.8rem;
+            }
+            
+            .post-content {
+                font-size: 0.95rem;
+            }
+            
+            .post-content h1 {
+                font-size: 1.6rem;
+            }
+            
+            .post-content h2 {
+                font-size: 1.4rem;
+            }
+            
+            .post-content h3 {
+                font-size: 1.2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Navigation -->
+        <nav class="nav-back">
+            <a href="../index.html" class="back-button">
+                ← Quay lại trang chủ
+            </a>
+        </nav>
+        
+        <!-- Post Header -->
+        <header class="post-header">
+            <div class="post-meta">
+                <span class="post-date">2025-01-27</span>
+                <span class="post-category">TIL</span>
+            </div>
+            
+            <h1 class="post-title">Supervised Learning và Unsupervised Learning: Khám phá các loại hình Học máy</h1>
+            
+            <div class="post-tags">
+                <span class="post-tag">supervised learning</span><span class="post-tag">unsupervised learning</span><span class="post-tag">semi-supervised learning</span><span class="post-tag">clustering</span><span class="post-tag">dimensionality reduction</span><span class="post-tag">anomaly detection</span><span class="post-tag">machine learning</span><span class="post-tag">python</span><span class="post-tag">scikit-learn</span>
+            </div>
+            
+            <div class="post-author">Bởi Huy Hiep Nguyen</div>
+        </header>
+        
+        <!-- Post Content -->
+        <article class="post-content">
+            <h1 id="supervised-learning-va-unsupervised-learning-kham-pha-cac-loai-hinh-hoc-may">Supervised Learning và Unsupervised Learning: Khám phá các loại hình Học máy</h1>
+<p>Sau khi đi một vòng để trang bị những kiến thức cơ bản nhất, giờ là lúc chúng ta sẽ quay lại với các thuật toán ML. Trong khi học máy có giám sát (supervised learning) đã trở nên quen thuộc, học máy không giám sát (unsupervised learning) và học máy bán giám sát (semi-supervised learning) lại mở ra những cánh cửa mới để khám phá các mối quan hệ ẩn trong dữ liệu.</p>
+<p>Bài blog này sẽ đi sâu vào các kỹ thuật và ứng dụng của hai lĩnh vực này, từ việc phân cụm dữ liệu cho đến việc tận dụng một lượng nhãn hạn chế để xây dựng các mô hình mạnh mẽ.</p>
+<h2 id="1-phan-biet-cac-loai-hinh-hoc-may"><strong>1. Phân biệt các loại hình Học máy</strong></h2>
+<p>Để hiểu rõ hơn về unsupervised và semi-supervised learning, chúng ta hãy đặt chúng vào bối cảnh của ba loại hình học máy chính:</p>
+<ul>
+<li>
+<p><strong>Học có giám sát (Supervised Learning):</strong> Dữ liệu huấn luyện có đầy đủ các cặp <strong>đầu vào-đầu ra (features-labels)</strong>. Mục tiêu là học một hàm ánh xạ từ đầu vào đến đầu ra.</p>
+<p></li></p>
+<li>
+<p><strong>Ví dụ:</strong> Phân loại email spam, dự đoán giá nhà.</p>
+<p></li></p>
+<li>
+<p><strong>Học không giám sát (Unsupervised Learning):</strong> Dữ liệu huấn luyện <strong>không có nhãn (labels)</strong>. Mục tiêu là khám phá cấu trúc, các mối quan hệ ẩn hoặc các mẫu (patterns) trong dữ liệu.</p>
+<p></li></p>
+<li>
+<p><strong>Ví dụ:</strong> Phân cụm khách hàng, giảm chiều dữ liệu để trực quan hóa.</p>
+<p></li></p>
+<li>
+<p><strong>Học bán giám sát (Semi-supervised Learning):</strong> Kết hợp cả hai loại trên, sử dụng một lượng nhỏ dữ liệu <strong>có nhãn</strong> và một lượng lớn dữ liệu <strong>không nhãn</strong> để huấn luyện mô hình.</p>
+<p></li></p>
+<li>
+<p><strong>Ví dụ:</strong> Phân loại văn bản khi chỉ có một vài tài liệu được gán nhãn thủ công.</p>
+<p></li></p>
+<p></ul></p>
+<h2 id="2-hoc-may-khong-giam-sat-kham-pha-cau-truc-du-lieu"><strong>2. Học máy không giám sát: Khám phá cấu trúc dữ liệu</strong></h2>
+<p>Các kỹ thuật học không giám sát giúp chúng ta tìm ra các nhóm, các điểm bất thường hoặc cách biểu diễn dữ liệu tốt hơn.</p>
+<h3 id="a-phan-cum-clustering"><strong>a. Phân cụm (Clustering)</strong></h3>
+<p>Mục tiêu của phân cụm là nhóm các mẫu dữ liệu tương tự nhau lại với nhau.</p>
+<ul>
+<li>
+<p><strong>K-Means:</strong> Thuật toán phổ biến và dễ hiểu. Nó chia dữ liệu thành $k$ cụm, trong đó $k$ được xác định trước. Thuật toán hoạt động bằng cách lặp lại hai bước:</p>
+<p></li></p>
+<li>
+<p>Gán mỗi điểm dữ liệu cho tâm cụm gần nhất.</p>
+<p></li></p>
+<li>Cập nhật vị trí của tâm cụm bằng giá trị trung bình của tất cả các điểm trong cụm đó.</li>
+<p></ul></p>
+<div class="code-block long-code" data-language="python"><button class="copy-button" onclick="copyCode(this)">Copy</button><pre><code>from sklearn.cluster import KMeans
+from sklearn.datasets import make_blobs
+
+# Tạo dữ liệu giả
+X, _ = make_blobs(n_samples=300, centers=4, cluster_std=0.60, random_state=0)
+
+# Phân cụm K-Means với k=4
+kmeans = KMeans(n_clusters=4, random_state=0, n_init=10)
+kmeans.fit(X)
+labels = kmeans.labels_
+
+print(&quot;Các nhãn cụm được gán:&quot;)
+print(labels[:10])  # In ra 10 nhãn đầu tiên
+<p></code></pre></div></p>
+<ul>
+<li>
+<p><strong>DBSCAN:</strong> Một thuật toán phân cụm dựa trên mật độ. DBSCAN không yêu cầu số cụm được xác định trước và có khả năng tìm ra các cụm có hình dạng phức tạp. Nó hoạt động bằng cách tìm ra các vùng có mật độ cao và phân loại các điểm còn lại là nhiễu (outliers).</p>
+<p></li></p>
+<li>
+<p><strong>Hierarchical Clustering:</strong> Tạo ra một cây phân cấp các cụm. Kết quả có thể được trực quan hóa bằng một biểu đồ Dendrogram, giúp chúng ta dễ dàng lựa chọn số cụm phù hợp.</p>
+<p></li></p>
+<p></ul></p>
+<h3 id="b-giam-chieu-du-lieu-dimensionality-reduction"><strong>b. Giảm chiều dữ liệu (Dimensionality Reduction)</strong></h3>
+<p>Giảm chiều dữ liệu là quá trình biến đổi dữ liệu từ không gian có nhiều chiều sang không gian có ít chiều hơn.</p>
+<ul>
+<li><strong>PCA (Principal Component Analysis):</strong> Một kỹ thuật giảm chiều tuyến tính, tìm ra các trục (principal components) mà tại đó phương sai của dữ liệu là lớn nhất. PCA rất hữu ích để loại bỏ các biến có tương quan cao và trực quan hóa dữ liệu.</li>
+<p></ul></p>
+<div class="code-block long-code" data-language="python"><button class="copy-button" onclick="copyCode(this)">Copy</button><pre><code>from sklearn.decomposition import PCA
+from sklearn.datasets import load_iris
+
+iris = load_iris()
+X = iris.data
+
+# Giảm chiều dữ liệu về 2 chiều
+pca = PCA(n_components=2)
+X_pca = pca.fit_transform(X)
+
+print(&quot;Dữ liệu sau khi giảm chiều với PCA:&quot;)
+print(X_pca[:5])
+<p></code></pre></div></p>
+<ul>
+<li><strong>t-SNE và UMAP:</strong> Các kỹ thuật giảm chiều phi tuyến tính, được thiết kế đặc biệt để trực quan hóa. Chúng cố gắng bảo toàn khoảng cách cục bộ giữa các điểm dữ liệu, giúp các cụm dễ dàng hiển thị trên một mặt phẳng 2D hoặc 3D.</li>
+<p></ul></p>
+<h3 id="c-phat-hien-bat-thuong-anomaly-detection"><strong>c. Phát hiện bất thường (Anomaly Detection)</strong></h3>
+<p>Mục tiêu là tìm ra các điểm dữ liệu khác biệt đáng kể so với phần còn lại của dữ liệu.</p>
+<ul>
+<li><strong>Isolation Forest:</strong> Một thuật toán hiệu quả dựa trên cây quyết định. Nó hoạt động bằng cách "cô lập" các điểm bất thường, vốn ít và dễ bị cô lập hơn so với các điểm bình thường.</li>
+<li><strong>One-Class SVM:</strong> Một phiên bản của Support Vector Machine, được huấn luyện trên một tập dữ liệu chỉ chứa các điểm bình thường. Sau đó, nó sẽ phân loại bất kỳ điểm mới nào không thuộc "vùng" này là bất thường.</li>
+<p></ul></p>
+<h2 id="3-hoc-may-ban-giam-sat-khi-nhan-du-lieu-la-mot-tai-san-hiem-co"><strong>3. Học máy bán giám sát: Khi nhãn dữ liệu là một "tài sản hiếm có"</strong></h2>
+<p>Trong nhiều tình huống thực tế, việc thu thập dữ liệu không có nhãn thì dễ, nhưng việc gán nhãn lại rất tốn kém. Học bán giám sát giúp chúng ta tận dụng tối đa lượng dữ liệu có nhãn hạn chế.</p>
+<h3 id="a-cac-phuong-phap-chinh"><strong>a. Các phương pháp chính</strong></h3>
+<ul>
+<li>
+<p><strong>Self-training:</strong> Đây là một phương pháp đơn giản nhưng hiệu quả.</p>
+<p></li></p>
+<li>
+<p>Huấn luyện một mô hình ban đầu trên tập dữ liệu có nhãn nhỏ.</p>
+<p></li></p>
+<li>Sử dụng mô hình đó để dự đoán trên tập dữ liệu không nhãn.</li>
+<li>Lựa chọn những dự đoán có độ tin cậy cao, gán nhãn cho chúng, và thêm vào tập huấn luyện ban đầu.</li>
+<li>
+<p>Lặp lại quá trình này cho đến khi mô hình hội tụ.</p>
+<p></li></p>
+<li>
+<p><strong>Label Propagation:</strong> Một thuật toán dựa trên đồ thị, lan truyền các nhãn đã biết đến các điểm dữ liệu không nhãn. Các điểm gần nhau trên đồ thị có xu hướng nhận cùng một nhãn.</p>
+<p></li></p>
+<li>
+<p><strong>Consistency Training:</strong> Đây là một phương pháp tiên tiến hơn, thường được sử dụng trong học sâu. Nó huấn luyện mô hình để đưa ra cùng một dự đoán cho một điểm dữ liệu, ngay cả khi điểm đó được làm nhiễu nhẹ.</p>
+<p></li></p>
+<p></ul></p>
+<h3 id="b-vi-du-code-voi-scikit-learn"><strong>b. Ví dụ Code với Scikit-learn</strong></h3>
+<p>Scikit-learn cung cấp một số công cụ cho học bán giám sát.</p>
+<div class="code-block long-code" data-language="python"><button class="copy-button" onclick="copyCode(this)">Copy</button><pre><code>from sklearn.semi_supervised import LabelSpreading
+from sklearn.datasets import make_moons
+import numpy as np
+
+# Tạo dữ liệu giả hình trăng lưỡi liềm
+X, y = make_moons(n_samples=200, noise=0.1, random_state=0)
+
+# Giả lập dữ liệu bán giám sát
+# Chỉ giữ lại 20 nhãn, còn lại là -1 (không nhãn)
+n_labeled = 20
+rng = np.random.RandomState(0)
+unlabeled_indices = rng.rand(len(X)) &gt; (n_labeled / len(X))
+y_unlabeled = np.copy(y)
+y_unlabeled[unlabeled_indices] = -1
+
+# Sử dụng Label Spreading
+label_spread_model = LabelSpreading(kernel='knn', alpha=0.2)
+label_spread_model.fit(X, y_unlabeled)
+y_pred = label_spread_model.predict(X)
+
+print(&quot;Độ chính xác trên toàn bộ tập dữ liệu:&quot;)
+print(f&quot;Accuracy: {np.mean(y_pred == y):.4f}&quot;)
+<p></code></pre></div></p>
+<h2 id="4-ung-dung-thuc-te"><strong>4. Ứng dụng thực tế</strong></h2>
+<ul>
+<li><strong>Phát hiện gian lận (Anomaly Detection):</strong> Một trong những ứng dụng phổ biến nhất của học không giám sát. Chúng ta có thể huấn luyện một mô hình trên dữ liệu giao dịch bình thường để phát hiện các giao dịch bất thường, tiềm ẩn nguy cơ gian lận.</li>
+<li><strong>Phân cụm khách hàng (Customer Segmentation):</strong> Phân cụm giúp các doanh nghiệp chia khách hàng thành các nhóm dựa trên hành vi mua sắm, sở thích, v.v., từ đó đưa ra các chiến lược marketing phù hợp.</li>
+<li><strong>Phân loại văn bản (Text Classification):</strong> Trong các ứng dụng như phân loại cảm xúc hay phân loại tin tức, việc gán nhãn cho hàng ngàn tài liệu là không khả thi. Học bán giám sát giúp chúng ta xây dựng mô hình phân loại hiệu quả chỉ với một lượng nhỏ dữ liệu được gán nhãn.</li>
+<p></ul></p>
+<h2 id="ket-luan"><strong>Kết luận</strong></h2>
+<p>Học máy không giám sát và bán giám sát là những công cụ mạnh mẽ, giúp chúng ta tận dụng tối đa dữ liệu thô và giải quyết các bài toán mà học có giám sát không thể giải quyết được. Hiểu rõ các thuật toán này sẽ mở rộng đáng kể bộ công cụ của bạn, cho phép bạn khám phá những khía cạnh mới của dữ liệu và xây dựng các hệ thống AI thông minh hơn, hiệu quả hơn. </p>
+        </article>
+    </div>
+    
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-text">
+                <div class="copyright">© 2025 Hiep Nguyen</div>
+                <div class="tagline">Vietnamese soul, global impact</div>
+                <div class="version">Est. 1997 | Version 27.0 (and counting!)</div>
+            </div>
+        </div>
+    </footer>
+    
+    <script>
+        // Copy code functionality
+        function copyCode(button) {
+            const codeBlock = button.parentElement;
+            const code = codeBlock.querySelector('code').textContent;
+            
+            navigator.clipboard.writeText(code).then(function() {
+                // Change button text temporarily
+                const originalText = button.textContent;
+                button.textContent = 'Copied!';
+                button.style.background = '#238636';
+                button.style.color = '#ffffff';
+                
+                setTimeout(function() {
+                    button.textContent = originalText;
+                    button.style.background = '#30363d';
+                    button.style.color = '#8b949e';
+                }, 2000);
+            }).catch(function(err) {
+                console.error('Could not copy text: ', err);
+                button.textContent = 'Failed';
+                button.style.background = '#da3633';
+                button.style.color = '#ffffff';
+            });
+        }
+        
+        // Disable syntax highlighting to avoid conflicts
+        // Code blocks will display with basic styling only
+    </script>
+</body>
+</html>

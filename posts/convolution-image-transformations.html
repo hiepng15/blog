@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Convolution và các phép biến đổi hình ảnh - Blog của Hiệp</title>
+    <meta name="description" content="Tìm hiểu về phép toán Convolution - nền tảng của xử lý tín hiệu và hình ảnh. Hiểu rõ các công thức toán học, định lý Convolution và ứng dụng trong Computer Vision.">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- MathJax for mathematical formulas -->
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            },
+            svg: {
+                fontCache: 'global'
+            }
+        };
+    </script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #1f1f1f;
+            background-image: 
+                radial-gradient(circle at 25% 25%, rgba(255,255,255,0.04) 0%, transparent 50%),
+                radial-gradient(circle at 75% 75%, rgba(255,255,255,0.04) 0%, transparent 50%);
+            color: #ffffff;
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            flex: 1;
+        }
+        
+        /* Navigation */
+        .nav-back {
+            margin-bottom: 40px;
+        }
+        
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: #64ffda;
+            text-decoration: none;
+            font-weight: 500;
+            padding: 10px 20px;
+            border: 1px solid #64ffda;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+            background: rgba(100, 255, 218, 0.1);
+        }
+        
+        .back-button:hover {
+            background: #64ffda;
+            color: #1f1f1f;
+            transform: translateY(-2px);
+        }
+        
+        /* Post Header */
+        .post-header {
+            margin-bottom: 40px;
+            padding-bottom: 30px;
+            border-bottom: 1px solid #233554;
+        }
+        
+        .post-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .post-date {
+            color: #8892b0;
+            font-size: 0.9rem;
+        }
+        
+        .post-category {
+            background: #64ffda;
+            color: #1f1f1f;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        
+        .post-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 20px;
+            line-height: 1.2;
+        }
+        
+        .post-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .post-tag {
+            background: rgba(100, 255, 218, 0.1);
+            color: #64ffda;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            border: 1px solid rgba(100, 255, 218, 0.2);
+        }
+        
+        .post-author {
+            color: #64ffda;
+            font-weight: 500;
+            font-size: 1.1rem;
+        }
+        
+        /* Post Content */
+        .post-content {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            color: #e6e6e6;
+        }
+        
+        .post-content h1, .post-content h2, .post-content h3, .post-content h4, .post-content h5, .post-content h6 {
+            color: #ffffff;
+            margin: 40px 0 20px 0;
+            font-weight: 600;
+        }
+        
+        .post-content h1 {
+            font-size: 2rem;
+        }
+        
+        .post-content h2 {
+            font-size: 1.8rem;
+        }
+        
+        .post-content h3 {
+            font-size: 1.5rem;
+        }
+        
+        .post-content p {
+            margin-bottom: 20px;
+        }
+        
+        .post-content ul, .post-content ol {
+            margin: 20px 0;
+            padding-left: 30px;
+        }
+        
+        .post-content li {
+            margin-bottom: 10px;
+        }
+        
+        .post-content strong {
+            color: #64ffda;
+            font-weight: 600;
+        }
+        
+        .post-content em {
+            color: #8892b0;
+            font-style: italic;
+        }
+        
+        .post-content hr {
+            border: none;
+            border-top: 1px solid #233554;
+            margin: 40px 0;
+        }
+        
+        .post-content blockquote {
+            border-left: 4px solid #64ffda;
+            padding-left: 20px;
+            margin: 20px 0;
+            color: #8892b0;
+            font-style: italic;
+        }
+        
+        /* Math and Image styles */
+        .math-formula {
+            margin: 20px 0;
+            text-align: center;
+            overflow-x: auto;
+        }
+        
+        .math-formula.inline {
+            display: inline;
+            margin: 0 5px;
+        }
+        
+        .post-image {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            margin: 20px 0;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+        
+        .post-image-container {
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        .post-image-caption {
+            font-size: 0.9rem;
+            color: #8892b0;
+            margin-top: 8px;
+            font-style: italic;
+        }
+        
+        .code-block {
+            background: #1a1a1a;
+            border: 1px solid #233554;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+        
+        .code-block pre {
+            margin: 0;
+            color: #64ffda;
+        }
+        
+        .code-block code {
+            color: #64ffda;
+        }
+        
+        .highlight-box {
+            background: rgba(100, 255, 218, 0.1);
+            border-left: 4px solid #64ffda;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .warning-box {
+            background: rgba(255, 193, 7, 0.1);
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .info-box {
+            background: rgba(13, 202, 240, 0.1);
+            border-left: 4px solid #0dcaf0;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        /* Footer */
+        .footer {
+            background: #1f1f1f;
+            background-image: 
+                radial-gradient(circle at 25% 25%, rgba(255,255,255,0.04) 0%, transparent 50%),
+                radial-gradient(circle at 75% 75%, rgba(255,255,255,0.04) 0%, transparent 50%);
+            border-top: 1px solid rgba(255, 255, 255, 0.03);
+            padding: 40px 0;
+            margin-top: 60px;
+            text-align: center;
+            position: relative;
+            width: 100vw;
+            margin-left: calc(-50vw + 50%);
+        }
+        
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 8vw;
+            text-align: center;
+        }
+        
+        .footer-text {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            align-items: center;
+        }
+        
+        .copyright {
+            font-size: 18px;
+            font-weight: 600;
+            color: #ffffff;
+            letter-spacing: 0.5px;
+        }
+        
+        .tagline {
+            font-size: 16px;
+            color: #888;
+            font-style: italic;
+            margin: 4px 0;
+        }
+        
+        .version {
+            font-size: 14px;
+            color: #666;
+            font-family: 'Courier New', monospace;
+            letter-spacing: 0.3px;
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px 15px;
+            }
+            
+            .post-title {
+                font-size: 2rem;
+            }
+            
+            .post-content {
+                font-size: 1rem;
+            }
+            
+            .post-content h1 {
+                font-size: 1.8rem;
+            }
+            
+            .post-content h2 {
+                font-size: 1.6rem;
+            }
+            
+            .post-content h3 {
+                font-size: 1.4rem;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .post-title {
+                font-size: 1.8rem;
+            }
+            
+            .post-content {
+                font-size: 0.95rem;
+            }
+            
+            .post-content h1 {
+                font-size: 1.6rem;
+            }
+            
+            .post-content h2 {
+                font-size: 1.4rem;
+            }
+            
+            .post-content h3 {
+                font-size: 1.2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Navigation -->
+        <nav class="nav-back">
+            <a href="../index.html" class="back-button">
+                ← Quay lại trang chủ
+            </a>
+        </nav>
+        
+        <!-- Post Header -->
+        <header class="post-header">
+            <div class="post-meta">
+                <span class="post-date">2025-01-25</span>
+                <span class="post-category">TIL</span>
+            </div>
+            
+            <h1 class="post-title">Convolution và các phép biến đổi hình ảnh</h1>
+            
+            <div class="post-tags">
+                <span class="post-tag">Convolution</span><span class="post-tag">Image Processing</span><span class="post-tag">Signal Processing</span><span class="post-tag">Fourier Transform</span><span class="post-tag">Computer Vision</span><span class="post-tag">Mathematics</span>
+            </div>
+            
+            <div class="post-author">Bởi Huy Hiep Nguyen</div>
+        </header>
+        
+        <!-- Post Content -->
+        <article class="post-content">
+            <h1 id="convolution-va-cac-phep-bien-oi-hinh-anh">Convolution và các phép biến đổi hình ảnh</h1>
+<h2 id="1-gioi-thieu-ve-convolution">1. Giới thiệu về Convolution</h2>
+<p><strong>Convolution</strong> là một phép toán toán học cơ bản trong xử lý tín hiệu và hình ảnh. Nó mô tả cách hai hàm số "trộn lẫn" với nhau để tạo ra một hàm số thứ ba. Trong ngữ cảnh của Computer Vision, convolution được sử dụng để lọc, làm mịn, phát hiện cạnh và thực hiện nhiều phép biến đổi hình ảnh khác.</p>
+<h3 id="11-inh-nghia-toan-hoc">1.1. Định nghĩa toán học</h3>
+<p>Với hai hàm số f(t) và g(t), phép convolution được định nghĩa như sau:</p>
+<p>$$(f * g)(t) = \int_{-\infty}^{\infty} f(\tau) \cdot g(t - \tau) d\tau$$</p>
+<p>Trong đó:
+<p>- <strong>f(t)</strong>: Tín hiệu đầu vào</p>
+<p>- <strong>g(t)</strong>: Kernel (bộ lọc)</p>
+<p>- <strong>τ</strong>: Biến tích phân</p>
+<p>- <strong>t</strong>: Thời gian hoặc vị trí</p></p>
+<h3 id="12-convolution-roi-rac-discrete-convolution">1.2. Convolution rời rạc (Discrete Convolution)</h3>
+<p>Đối với tín hiệu số và hình ảnh, chúng ta sử dụng convolution rời rạc:</p>
+<p>$$(f * g)[n] = \sum_{k=-\infty}^{\infty} f[k] \cdot g[n - k]$$</p>
+<p>Với hình ảnh 2D, công thức trở thành:</p>
+<p>$$(f * g)[i, j] = \sum_{m=-\infty}^{\infty} \sum_{n=-\infty}^{\infty} f[m, n] \cdot g[i - m, j - n]$$</p>
+<h2 id="2-inh-ly-convolution-va-mien-tan-so">2. Định lý Convolution và miền tần số</h2>
+<h3 id="21-inh-ly-convolution">2.1. Định lý Convolution</h3>
+<p>Một trong những định lý quan trọng nhất trong xử lý tín hiệu là <strong>Định lý Convolution</strong>:</p>
+<p><strong>Convolution trong miền thời gian tương đương với phép nhân trong miền tần số</strong></p>
+<p>$$f(t) * g(t) \leftrightarrow F(\omega) \cdot G(\omega)$$</p>
+<p>Trong đó:
+<p>- <strong>F(ω)</strong>: Biến đổi Fourier của f(t)</p>
+<p>- <strong>G(ω)</strong>: Biến đổi Fourier của g(t)</p></p>
+<h3 id="22-y-nghia-thuc-te">2.2. Ý nghĩa thực tế</h3>
+<p>Định lý này có ý nghĩa rất quan trọng:</p>
+<ol>
+<li><strong>Tính toán hiệu quả</strong>: Thay vì thực hiện convolution trực tiếp (phức tạp), ta có thể:</li>
+<li>Chuyển sang miền tần số bằng FFT</li>
+<li>Thực hiện phép nhân đơn giản</li>
+<li>
+<p>Chuyển ngược về miền thời gian bằng IFFT</p>
+<p></li></p>
+<li>
+<p><strong>Hiểu biết sâu sắc</strong>: Giúp hiểu cách các bộ lọc hoạt động trong miền tần số</p>
+<p></li></p>
+<p></ol></p>
+<h2 id="3-cac-loai-kernel-pho-bien-trong-xu-ly-hinh-anh">3. Các loại Kernel phổ biến trong xử lý hình ảnh</h2>
+<h3 id="31-kernel-lam-min-smoothing-kernels">3.1. Kernel làm mịn (Smoothing Kernels)</h3>
+<p><strong>Kernel trung bình (Average Filter)</strong>:</p>
+<div class="codehilite"><pre><span></span><code><span class="mf">1</span><span class="o">/</span><span class="mf">9</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="err">[</span><span class="mf">1</span><span class="w"> </span><span class="mf">1</span><span class="w"> </span><span class="mf">1</span><span class="err">]</span>
+<p><span class="w">      </span><span class="err">[</span><span class="mf">1</span><span class="w"> </span><span class="mf">1</span><span class="w"> </span><span class="mf">1</span><span class="err">]</span></p>
+<p><span class="w">      </span><span class="err">[</span><span class="mf">1</span><span class="w"> </span><span class="mf">1</span><span class="w"> </span><span class="mf">1</span><span class="err">]</span></p>
+<p></code></pre></div></p>
+
+<p><strong>Kernel Gaussian</strong>:</p>
+<div class="codehilite"><pre><span></span><code><span class="mf">1</span><span class="o">/</span><span class="mf">16</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="err">[</span><span class="mf">1</span><span class="w"> </span><span class="mf">2</span><span class="w"> </span><span class="mf">1</span><span class="err">]</span>
+<p><span class="w">       </span><span class="err">[</span><span class="mf">2</span><span class="w"> </span><span class="mf">4</span><span class="w"> </span><span class="mf">2</span><span class="err">]</span></p>
+<p><span class="w">       </span><span class="err">[</span><span class="mf">1</span><span class="w"> </span><span class="mf">2</span><span class="w"> </span><span class="mf">1</span><span class="err">]</span></p>
+<p></code></pre></div></p>
+
+<h3 id="32-kernel-phat-hien-canh-edge-detection">3.2. Kernel phát hiện cạnh (Edge Detection)</h3>
+<p><strong>Kernel Sobel (phát hiện cạnh theo hướng X)</strong>:</p>
+<div class="codehilite"><pre><span></span><code><span class="k">[-1  0  1]</span>
+<p><span class="k">[-2  0  2]</span></p>
+<p><span class="k">[-1  0  1]</span></p>
+<p></code></pre></div></p>
+
+<p><strong>Kernel Sobel (phát hiện cạnh theo hướng Y)</strong>:</p>
+<div class="codehilite"><pre><span></span><code><span class="k">[-1 -2 -1]</span>
+<p><span class="k">[ 0  0  0]</span></p>
+<p><span class="k">[ 1  2  1]</span></p>
+<p></code></pre></div></p>
+
+<p><strong>Kernel Laplacian</strong>:</p>
+<div class="codehilite"><pre><span></span><code><span class="k">[ 0 -1  0]</span>
+<p><span class="k">[-1  4 -1]</span></p>
+<p><span class="k">[ 0 -1  0]</span></p>
+<p></code></pre></div></p>
+
+<h3 id="33-kernel-lam-sac-net-sharpening">3.3. Kernel làm sắc nét (Sharpening)</h3>
+<p><strong>Kernel Unsharp Masking</strong>:</p>
+<div class="codehilite"><pre><span></span><code><span class="k">[ 0 -1  0]</span>
+<p><span class="k">[-1  5 -1]</span></p>
+<p><span class="k">[ 0 -1  0]</span></p>
+<p></code></pre></div></p>
+
+<h2 id="4-ung-dung-trong-computer-vision">4. Ứng dụng trong Computer Vision</h2>
+<h3 id="41-loc-nhieu-noise-reduction">4.1. Lọc nhiễu (Noise Reduction)</h3>
+<p>Convolution với kernel làm mịn giúp loại bỏ nhiễu trong hình ảnh:</p>
+<p>$$I_{filtered}(x, y) = \sum_{i=-k}^{k} \sum_{j=-k}^{k} I(x+i, y+j) \cdot K(i, j)$$</p>
+<p>Trong đó K(i,j) là kernel làm mịn.</p>
+<h3 id="42-phat-hien-canh-edge-detection">4.2. Phát hiện cạnh (Edge Detection)</h3>
+<p>Sử dụng các kernel như Sobel, Canny để phát hiện cạnh:</p>
+<p>$$G_x = \frac{\partial I}{\partial x}, \quad G_y = \frac{\partial I}{\partial y}$$</p>
+<p>$$G = \sqrt{G_x^2 + G_y^2}$$</p>
+<h3 id="43-convolutional-neural-networks-cnn">4.3. Convolutional Neural Networks (CNN)</h3>
+<p>Trong Deep Learning, convolution được sử dụng để:</p>
+<ol>
+<li><strong>Trích xuất đặc trưng</strong>: Tự động học các kernel tối ưu</li>
+<li><strong>Giảm tham số</strong>: Chia sẻ trọng số giữa các vị trí</li>
+<li><strong>Bất biến với dịch chuyển</strong>: Nhận dạng đối tượng ở các vị trí khác nhau</li>
+<p></ol></p>
+<h2 id="5-cac-phep-bien-oi-hinh-anh-nang-cao">5. Các phép biến đổi hình ảnh nâng cao</h2>
+<h3 id="51-morphological-operations">5.1. Morphological Operations</h3>
+<p><strong>Dilation (Giãn nở)</strong>:
+<p>$$(A \oplus B)(x, y) = \max_{(i,j) \in B} A(x-i, y-j)$$</p></p>
+<p><strong>Erosion (Co lại)</strong>:
+<p>$$(A \ominus B)(x, y) = \min_{(i,j) \in B} A(x+i, y+j)$$</p></p>
+<h3 id="52-geometric-transformations">5.2. Geometric Transformations</h3>
+<p><strong>Affine Transformation</strong>:
+<p>$$\begin{bmatrix} x' \ y' \end{bmatrix} = \begin{bmatrix} a &amp; b \ c &amp; d \end{bmatrix} \begin{bmatrix} x \ y \end{bmatrix} + \begin{bmatrix} t_x \ t_y \end{bmatrix}$$</p></p>
+<h3 id="53-frequency-domain-filtering">5.3. Frequency Domain Filtering</h3>
+<p>Sử dụng định lý convolution để lọc trong miền tần số:</p>
+<ol>
+<li><strong>Low-pass filter</strong>: Loại bỏ tần số cao (nhiễu)</li>
+<li><strong>High-pass filter</strong>: Giữ lại tần số cao (cạnh)</li>
+<li><strong>Band-pass filter</strong>: Giữ lại dải tần cụ thể</li>
+<p></ol></p>
+<h2 id="6-toi-uu-hoa-va-hieu-suat">6. Tối ưu hóa và hiệu suất</h2>
+<h3 id="61-separable-convolution">6.1. Separable Convolution</h3>
+<p>Nếu kernel có thể tách thành tích của hai vector 1D:</p>
+<p>$$K = v \cdot h^T$$</p>
+<p>Thì convolution 2D có thể được thực hiện bằng hai convolution 1D liên tiếp, giảm độ phức tạp từ O(n²) xuống O(2n).</p>
+<h3 id="62-fft-based-convolution">6.2. FFT-based Convolution</h3>
+<p>Với kernel lớn, sử dụng FFT có thể hiệu quả hơn:</p>
+<ol>
+<li>Chuyển cả hình ảnh và kernel sang miền tần số</li>
+<li>Thực hiện phép nhân</li>
+<li>Chuyển ngược về miền không gian</li>
+<p></ol></p>
+<h2 id="7-ket-luan">7. Kết luận</h2>
+<p>Convolution là một công cụ mạnh mẽ trong xử lý hình ảnh và Computer Vision. Hiểu rõ các nguyên lý toán học và ứng dụng thực tế giúp chúng ta:</p>
+<ul>
+<li><strong>Thiết kế bộ lọc hiệu quả</strong> cho các ứng dụng cụ thể</li>
+<li><strong>Tối ưu hóa hiệu suất</strong> trong các thuật toán xử lý hình ảnh</li>
+<li><strong>Phát triển các mô hình Deep Learning</strong> hiệu quả hơn</li>
+<li><strong>Giải quyết các bài toán thực tế</strong> trong Computer Vision</li>
+<p></ul></p>
+<p>Việc nắm vững convolution không chỉ giúp hiểu sâu về xử lý hình ảnh mà còn là nền tảng để tiếp cận các kỹ thuật nâng cao trong AI và Machine Learning. </p>
+        </article>
+    </div>
+    
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-text">
+                <div class="copyright">© 2025 Hiep Nguyen</div>
+                <div class="tagline">Vietnamese soul, global impact</div>
+                <div class="version">Est. 1997 | Version 27.0 (and counting!)</div>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

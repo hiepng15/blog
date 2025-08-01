@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Feature Engineering trong Python (Phần 1): Pandas, Numpy, và Scikit-learn - Blog của Hiệp</title>
+    <meta name="description" content="Hướng dẫn chuyên sâu về kỹ thuật đặc trưng (feature engineering) trong Python sử dụng các thư viện mạnh mẽ như Pandas, Numpy, và Scikit-learn, từ xử lý dữ liệu đến chuẩn hóa và tạo đặc trưng.">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- MathJax for mathematical formulas -->
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            },
+            svg: {
+                fontCache: 'global'
+            }
+        };
+    </script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #1f1f1f;
+            background-image: 
+                radial-gradient(circle at 25% 25%, rgba(255,255,255,0.04) 0%, transparent 50%),
+                radial-gradient(circle at 75% 75%, rgba(255,255,255,0.04) 0%, transparent 50%);
+            color: #ffffff;
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            flex: 1;
+        }
+        
+        /* Navigation */
+        .nav-back {
+            margin-bottom: 40px;
+        }
+        
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: #64ffda;
+            text-decoration: none;
+            font-weight: 500;
+            padding: 10px 20px;
+            border: 1px solid #64ffda;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+            background: rgba(100, 255, 218, 0.1);
+        }
+        
+        .back-button:hover {
+            background: #64ffda;
+            color: #1f1f1f;
+            transform: translateY(-2px);
+        }
+        
+        /* Post Header */
+        .post-header {
+            margin-bottom: 40px;
+            padding-bottom: 30px;
+            border-bottom: 1px solid #233554;
+        }
+        
+        .post-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .post-date {
+            color: #8892b0;
+            font-size: 0.9rem;
+        }
+        
+        .post-category {
+            background: #64ffda;
+            color: #1f1f1f;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        
+        .post-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 20px;
+            line-height: 1.2;
+        }
+        
+        .post-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .post-tag {
+            background: rgba(100, 255, 218, 0.1);
+            color: #64ffda;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            border: 1px solid rgba(100, 255, 218, 0.2);
+        }
+        
+        .post-author {
+            color: #64ffda;
+            font-weight: 500;
+            font-size: 1.1rem;
+        }
+        
+        /* Post Content */
+        .post-content {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            color: #e6e6e6;
+        }
+        
+        .post-content h1, .post-content h2, .post-content h3, .post-content h4, .post-content h5, .post-content h6 {
+            color: #ffffff;
+            margin: 40px 0 20px 0;
+            font-weight: 600;
+        }
+        
+        .post-content h1 {
+            font-size: 2rem;
+        }
+        
+        .post-content h2 {
+            font-size: 1.8rem;
+        }
+        
+        .post-content h3 {
+            font-size: 1.5rem;
+        }
+        
+        .post-content p {
+            margin-bottom: 20px;
+        }
+        
+        .post-content ul, .post-content ol {
+            margin: 20px 0;
+            padding-left: 30px;
+        }
+        
+        .post-content li {
+            margin-bottom: 10px;
+        }
+        
+        .post-content strong {
+            color: #64ffda;
+            font-weight: 600;
+        }
+        
+        .post-content em {
+            color: #8892b0;
+            font-style: italic;
+        }
+        
+        .post-content hr {
+            border: none;
+            border-top: 1px solid #233554;
+            margin: 40px 0;
+        }
+        
+        .post-content blockquote {
+            border-left: 4px solid #64ffda;
+            padding-left: 20px;
+            margin: 20px 0;
+            color: #8892b0;
+            font-style: italic;
+        }
+        
+        /* Math and Image styles */
+        .math-formula {
+            margin: 20px 0;
+            text-align: center;
+            overflow-x: auto;
+        }
+        
+        .math-formula.inline {
+            display: inline;
+            margin: 0 5px;
+        }
+        
+        .post-image {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            margin: 20px 0;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+        
+        .post-image-container {
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        .post-image-caption {
+            font-size: 0.9rem;
+            color: #8892b0;
+            margin-top: 8px;
+            font-style: italic;
+        }
+        
+        .code-block {
+            background: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            padding: 12px;
+            margin: 16px 0;
+            overflow-x: auto;
+            font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', 'Source Code Pro', monospace;
+            font-size: 0.85rem;
+            line-height: 1.4;
+            position: relative;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+        
+        .code-block::before {
+            content: attr(data-language);
+            position: absolute;
+            top: 0;
+            right: 12px;
+            background: #30363d;
+            color: #8b949e;
+            padding: 2px 8px;
+            font-size: 0.75rem;
+            border-radius: 0 0 4px 4px;
+            text-transform: uppercase;
+            font-weight: 500;
+        }
+        
+        .code-block pre {
+            margin: 0;
+            color: #c9d1d9;
+        }
+        
+        .code-block code {
+            color: #c9d1d9;
+        }
+        
+        /* Syntax highlighting colors */
+        .code-block .keyword {
+            color: #ff7b72;
+        }
+        
+        .code-block .string {
+            color: #a5d6ff;
+        }
+        
+        .code-block .comment {
+            color: #8b949e;
+            font-style: italic;
+        }
+        
+        .code-block .function {
+            color: #d2a8ff;
+        }
+        
+        .code-block .number {
+            color: #79c0ff;
+        }
+        
+        .code-block .operator {
+            color: #ff7b72;
+        }
+        
+        /* Inline code */
+        .post-content code:not(.code-block code) {
+            background: rgba(110, 118, 129, 0.4);
+            color: #c9d1d9;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 0.85em;
+            font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', 'Source Code Pro', monospace;
+        }
+        
+        /* Table Styles */
+        .post-content table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 2rem 0;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .post-content thead {
+            background: rgba(100, 255, 218, 0.1);
+        }
+        
+        .post-content th {
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+            color: #64ffda;
+            border-bottom: 2px solid rgba(100, 255, 218, 0.3);
+        }
+        
+        .post-content td {
+            padding: 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            color: #e0e0e0;
+        }
+        
+        .post-content tr:hover {
+            background: rgba(255, 255, 255, 0.02);
+        }
+        
+        .post-content tbody tr:last-child td {
+            border-bottom: none;
+        }
+        
+        /* Copy button for code blocks */
+        .code-block {
+            position: relative;
+        }
+        
+        .copy-button {
+            position: absolute;
+            top: 8px;
+            right: 40px;
+            background: #30363d;
+            color: #8b949e;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+        
+        .code-block:hover .copy-button {
+            opacity: 1;
+        }
+        
+        .copy-button:hover {
+            background: #484f58;
+            color: #c9d1d9;
+        }
+        
+        /* Line numbers for long code blocks */
+        .code-block.long-code {
+            counter-reset: line;
+        }
+        
+        .code-block.long-code pre {
+            display: flex;
+        }
+        
+        .code-block.long-code code {
+            counter-increment: line;
+            display: block;
+            padding-left: 3.5em;
+            position: relative;
+        }
+        
+        .code-block.long-code code::before {
+            content: counter(line);
+            position: absolute;
+            left: 0;
+            width: 2.5em;
+            text-align: right;
+            color: #484f58;
+            font-size: 0.9em;
+            padding-right: 1em;
+            border-right: 1px solid #30363d;
+        }
+        
+        .highlight-box {
+            background: rgba(100, 255, 218, 0.1);
+            border-left: 4px solid #64ffda;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .warning-box {
+            background: rgba(255, 193, 7, 0.1);
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .info-box {
+            background: rgba(13, 202, 240, 0.1);
+            border-left: 4px solid #0dcaf0;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        /* Footer */
+        .footer {
+            background: #1f1f1f;
+            background-image: 
+                radial-gradient(circle at 25% 25%, rgba(255,255,255,0.04) 0%, transparent 50%),
+                radial-gradient(circle at 75% 75%, rgba(255,255,255,0.04) 0%, transparent 50%);
+            border-top: 1px solid rgba(255, 255, 255, 0.03);
+            padding: 40px 0;
+            margin-top: 60px;
+            text-align: center;
+            position: relative;
+            width: 100vw;
+            margin-left: calc(-50vw + 50%);
+        }
+        
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 8vw;
+            text-align: center;
+        }
+        
+        .footer-text {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            align-items: center;
+        }
+        
+        .copyright {
+            font-size: 18px;
+            font-weight: 600;
+            color: #ffffff;
+            letter-spacing: 0.5px;
+        }
+        
+        .tagline {
+            font-size: 16px;
+            color: #888;
+            font-style: italic;
+            margin: 4px 0;
+        }
+        
+        .version {
+            font-size: 14px;
+            color: #666;
+            font-family: 'Courier New', monospace;
+            letter-spacing: 0.3px;
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px 15px;
+            }
+            
+            .post-title {
+                font-size: 2rem;
+            }
+            
+            .post-content {
+                font-size: 1rem;
+            }
+            
+            .post-content h1 {
+                font-size: 1.8rem;
+            }
+            
+            .post-content h2 {
+                font-size: 1.6rem;
+            }
+            
+            .post-content h3 {
+                font-size: 1.4rem;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .post-title {
+                font-size: 1.8rem;
+            }
+            
+            .post-content {
+                font-size: 0.95rem;
+            }
+            
+            .post-content h1 {
+                font-size: 1.6rem;
+            }
+            
+            .post-content h2 {
+                font-size: 1.4rem;
+            }
+            
+            .post-content h3 {
+                font-size: 1.2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Navigation -->
+        <nav class="nav-back">
+            <a href="../index.html" class="back-button">
+                ← Quay lại trang chủ
+            </a>
+        </nav>
+        
+        <!-- Post Header -->
+        <header class="post-header">
+            <div class="post-meta">
+                <span class="post-date">2025-01-27</span>
+                <span class="post-category">TIL</span>
+            </div>
+            
+            <h1 class="post-title">Feature Engineering trong Python (Phần 1): Pandas, Numpy, và Scikit-learn</h1>
+            
+            <div class="post-tags">
+                <span class="post-tag">python</span><span class="post-tag">feature engineering</span><span class="post-tag">pandas</span><span class="post-tag">numpy</span><span class="post-tag">scikit-learn</span><span class="post-tag">machine learning</span>
+            </div>
+            
+            <div class="post-author">Bởi Huy Hiep Nguyen</div>
+        </header>
+        
+        <!-- Post Content -->
+        <article class="post-content">
+            <h2 id="gioi-thieu-feature-engineering-la-gi">Giới thiệu: Feature Engineering là gì?</h2>
+<p>Trong một pipeline Machine Learning, Feature Engineering (FE) là bước tiền xử lý dữ liệu nhằm tạo ra các đặc trưng (features) mới hoặc biến đổi các đặc trưng hiện có để cải thiện hiệu suất của mô hình. Dữ liệu tốt và các đặc trưng phù hợp thường quan trọng hơn cả việc lựa chọn thuật toán phức tạp. Một mô hình đơn giản với các đặc trưng tốt có thể vượt qua một mô hình phức tạp với các đặc trưng kém chất lượng.</p>
+<p>Trong bài viết này, chúng ta sẽ khám phá cách thực hiện Feature Engineering trong Python bằng ba công cụ không thể thiếu: <strong>Pandas</strong> cho thao tác dữ liệu, <strong>Numpy</strong> cho tính toán số học hiệu suất cao, và <strong>Scikit-learn</strong> cho các bộ tiền xử lý tiêu chuẩn.</p>
+<hr />
+<h2 id="1-pandas-nguoi-ban-ong-hanh-cho-thao-tac-du-lieu">1. Pandas: Người bạn đồng hành cho thao tác dữ liệu</h2>
+<p>Pandas là công cụ mạnh mẽ nhất để làm sạch, biến đổi và phân tích dữ liệu có cấu trúc. Dưới đây là các kỹ thuật FE phổ biến với Pandas.</p>
+<div class="code-block long-code" data-language="python"><button class="copy-button" onclick="copyCode(this)">Copy</button><pre><code>import pandas as pd
+import numpy as np
+
+# Dữ liệu giả lập
+data = {
+    'order_id': [1, 2, 3, 4, 5, 6, 7, 8],
+    'product_category': ['A', 'B', 'A', 'C', 'B', 'A', 'C', 'A'],
+    'price': [100, 150, 110, 200, 160, 90, 210, 95],
+    'order_date': pd.to_datetime([
+        '2025-01-15 08:30', '2025-01-15 12:45', '2025-01-16 09:00', 
+        '2025-01-16 14:00', '2025-01-17 11:30', '2025-01-17 08:00',
+        '2025-01-18 18:00', '2025-01-18 10:00'
+    ]),
+    'rating': [4.5, 5.0, 4.0, 3.5, np.nan, 5.0, 4.0, 4.5]
+}
+df = pd.DataFrame(data)
+<p></code></pre></div></p>
+<h3 id="a-tao-ac-trung-moi-tu-cac-cot-hien-co">a. Tạo đặc trưng mới từ các cột hiện có</h3>
+<p>Đây là kỹ thuật cơ bản nhất, ví dụ như tính toán giá trị tương tác giữa các cột.</p>
+<div class="code-block" data-language="python"><button class="copy-button" onclick="copyCode(this)">Copy</button><pre><code># Tạo đặc trưng giá có phải là số chẵn không
+df['price_is_even'] = df['price'].apply(lambda x: 1 if x % 2 == 0 else 0)
+<p></code></pre></div></p>
+<h3 id="b-xu-ly-ac-trung-thoi-gian-datetime">b. Xử lý đặc trưng thời gian (Datetime)</h3>
+<p>Thời gian là một mỏ vàng cho feature engineering. Ta có thể trích xuất nhiều thông tin từ một cột datetime.</p>
+<div class="code-block" data-language="python"><button class="copy-button" onclick="copyCode(this)">Copy</button><pre><code>df['order_hour'] = df['order_date'].dt.hour
+df['order_day_of_week'] = df['order_date'].dt.dayofweek # Monday=0, Sunday=6
+df['is_weekend'] = df['order_day_of_week'].isin([5, 6]).astype(int)
+<p></code></pre></div></p>
+<h3 id="c-ac-trung-dua-tren-nhom-group-based-features">c. Đặc trưng dựa trên nhóm (Group-based Features)</h3>
+<p>Sử dụng <code>groupby()</code> kết hợp với <code>transform()</code> hoặc <code>agg()</code> để tạo các đặc trưng thống kê cho mỗi nhóm.</p>
+<div class="code-block" data-language="python"><button class="copy-button" onclick="copyCode(this)">Copy</button><pre><code># Tính giá trung bình cho mỗi danh mục sản phẩm
+# transform() trả về một Series có cùng index với DataFrame gốc
+avg_price_per_category = df.groupby('product_category')['price'].transform('mean')
+df['avg_price_category'] = avg_price_per_category
+
+# Tạo đặc trưng so sánh giá của sản phẩm với giá trung bình của danh mục đó
+df['price_vs_category_avg'] = df['price'] - df['avg_price_category']
+<p></code></pre></div></p>
+<h3 id="d-xu-ly-gia-tri-thieu-missing-data">d. Xử lý giá trị thiếu (Missing Data)</h3>
+<p>Thay thế giá trị thiếu là một phần quan trọng. Ta có thể điền giá trị trung bình, trung vị, hoặc một giá trị không đổi.</p>
+<div class="code-block" data-language="python"><button class="copy-button" onclick="copyCode(this)">Copy</button><pre><code># Điền giá trị thiếu ở cột rating bằng giá trị trung bình của cột
+mean_rating = df['rating'].mean()
+df['rating_filled'] = df['rating'].fillna(mean_rating)
+<p></code></pre></div></p>
+<hr />
+<h2 id="2-numpy-nen-tang-cho-tinh-toan-so-hoc">2. Numpy: Nền tảng cho tính toán số học</h2>
+<p>Numpy cung cấp các cấu trúc dữ liệu mảng đa chiều và các hàm toán học hiệu suất cao. Nó thường được sử dụng sau khi đã xử lý dữ liệu bằng Pandas.</p>
+<h3 id="a-bien-oi-toan-hoc">a. Biến đổi toán học</h3>
+<p>Áp dụng các phép biến đổi như log, căn bậc hai để thay đổi phân phối của dữ liệu, giúp mô hình hoạt động tốt hơn.</p>
+<div class="code-block" data-language="python"><button class="copy-button" onclick="copyCode(this)">Copy</button><pre><code># Giả sử cột price có phân phối lệch (skewed)
+# Áp dụng log transform để chuẩn hóa phân phối
+# Thêm 1 để tránh log(0)
+df['price_log'] = np.log1p(df['price'])
+<p></code></pre></div></p>
+<h3 id="b-vectorization">b. Vectorization</h3>
+<p>Numpy cho phép thực hiện các phép toán trên toàn bộ mảng (vectorization) thay vì dùng vòng lặp, giúp tăng tốc độ xử lý đáng kể.</p>
+<div class="code-block" data-language="python"><button class="copy-button" onclick="copyCode(this)">Copy</button><pre><code># Thay vì dùng .apply() của Pandas, ta có thể dùng np.where
+# Ví dụ: tạo đặc trưng dựa trên ngưỡng giá
+df['is_expensive'] = np.where(df['price'] &gt; 150, 1, 0)
+<p></code></pre></div></p>
+<hr />
+<h2 id="3-scikit-learn-chuan-hoa-va-ma-hoa">3. Scikit-learn: Chuẩn hóa và Mã hóa</h2>
+<p>Scikit-learn cung cấp một bộ công cụ tiền xử lý mạnh mẽ và nhất quán thông qua API <code>Transformer</code> (<code>fit</code>, <code>transform</code>, <code>fit_transform</code>).</p>
+<h3 id="a-chuan-hoa-scaling">a. Chuẩn hóa (Scaling)</h3>
+<ul>
+<li><strong>StandardScaler</strong>: Chuẩn hóa đặc trưng bằng cách loại bỏ giá trị trung bình và chia cho độ lệch chuẩn. Kết quả là phân phối có trung bình là 0 và phương sai là 1.</li>
+<li><strong>MinMaxScaler</strong>: Co giãn đặc trưng về một khoảng giá trị cho trước, thường là [0, 1].</li>
+<p></ul></p>
+<div class="code-block" data-language="python"><button class="copy-button" onclick="copyCode(this)">Copy</button><pre><code>from sklearn.preprocessing import StandardScaler, MinMaxScaler
+
+scaler_std = StandardScaler()
+df['price_scaled'] = scaler_std.fit_transform(df[['price']])
+
+scaler_minmax = MinMaxScaler()
+df['price_minmax'] = scaler_minmax.fit_transform(df[['price']])
+<p></code></pre></div></p>
+<h3 id="b-ma-hoa-bien-phan-loai-categorical-encoding">b. Mã hóa biến phân loại (Categorical Encoding)</h3>
+<ul>
+<li><strong>OneHotEncoder</strong>: Biến mỗi giá trị trong biến phân loại thành một cột nhị phân mới.</li>
+<li><strong>OrdinalEncoder</strong>: Ánh xạ mỗi giá trị trong biến phân loại thành một số nguyên. Hữu ích khi các giá trị có thứ tự.</li>
+<p></ul></p>
+<div class="code-block" data-language="python"><button class="copy-button" onclick="copyCode(this)">Copy</button><pre><code>from sklearn.preprocessing import OneHotEncoder, OrdinalEncoder
+
+# One-Hot Encoding cho product_category
+ohe = OneHotEncoder(sparse_output=False)
+category_encoded = ohe.fit_transform(df[['product_category']])
+# Tạo DataFrame từ kết quả và nối vào df gốc
+df_category = pd.DataFrame(category_encoded, columns=ohe.get_feature_names_out())
+df = pd.concat([df.reset_index(drop=True), df_category], axis=1)
+<p></code></pre></div></p>
+<h3 id="c-tao-ac-trung-a-thuc-polynomial-features">c. Tạo đặc trưng đa thức (Polynomial Features)</h3>
+<p><code>PolynomialFeatures</code> tạo ra các đặc trưng tương tác và đặc trưng bậc cao, giúp mô hình tuyến tính có thể học các mối quan hệ phi tuyến.</p>
+<div class="code-block" data-language="python"><button class="copy-button" onclick="copyCode(this)">Copy</button><pre><code>from sklearn.preprocessing import PolynomialFeatures
+
+poly = PolynomialFeatures(degree=2, include_bias=False)
+price_poly = poly.fit_transform(df[['price']])
+# price_poly sẽ chứa [price, price^2]
+<p></code></pre></div></p>
+<hr />
+<h2 id="so-sanh-va-ket-hop">So sánh và Kết hợp</h2>
+<table>
+<thead>
+<tr>
+<p><th style="text-align: center;">Thư viện</th></p>
+<p><th style="text-align: center;">Vai trò chính trong Feature Engineering</th></p>
+<p><th style="text-align: center;">Điểm mạnh</th></p>
+</tr>
+</thead>
+<tbody>
+<tr>
+<p><td style="text-align: center;"><strong>Pandas</strong></td></p>
+<p><td style="text-align: center;">Thao tác, làm sạch, tạo đặc trưng từ dữ liệu có cấu trúc</td></p>
+<p><td style="text-align: center;">Linh hoạt, mạnh mẽ với dữ liệu dạng bảng, xử lý datetime và group-based features</td></p>
+</tr>
+<tr>
+<p><td style="text-align: center;"><strong>Numpy</strong></td></p>
+<p><td style="text-align: center;">Biến đổi toán học và tính toán số học hiệu suất cao</td></p>
+<p><td style="text-align: center;">Tốc độ (vectorization), hiệu quả về bộ nhớ, nền tảng cho các thư viện khác</td></p>
+</tr>
+<tr>
+<p><td style="text-align: center;"><strong>Scikit-learn</strong></td></p>
+<p><td style="text-align: center;">Cung cấp các bộ tiền xử lý tiêu chuẩn, có thể tái sử dụng</td></p>
+<p><td style="text-align: center;">API nhất quán (<code>fit/transform</code>), dễ dàng tích hợp vào pipeline, nhiều thuật toán sẵn có</td></p>
+</tr>
+</tbody>
+</table>
+<p><strong>Workflow thực tiễn:</strong></p>
+<ol>
+<li><strong>Dùng Pandas để tải và làm sạch dữ liệu</strong>: Xử lý giá trị thiếu, sửa kiểu dữ liệu.</li>
+<li><strong>Dùng Pandas để tạo các đặc trưng phức tạp</strong>: Trích xuất thông tin từ datetime, tạo các đặc trưng thống kê theo nhóm.</li>
+<li><strong>Dùng Numpy cho các phép biến đổi toán học</strong>: Áp dụng log, sin, cos... trên các cột số đã được làm sạch.</li>
+<li><strong>Dùng Scikit-learn để chuẩn hóa và mã hóa</strong>: Áp dụng <code>StandardScaler</code> cho các cột số và <code>OneHotEncoder</code> cho các cột phân loại để chuẩn bị dữ liệu cho mô hình.</li>
+<p></ol></p>
+<p>Bằng cách kết hợp sức mạnh của cả ba thư viện, bạn có thể xây dựng một quy trình feature engineering mạnh mẽ, hiệu quả và dễ bảo trì cho hầu hết mọi bài toán Machine Learning.</p>
+        </article>
+    </div>
+    
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-text">
+                <div class="copyright">© 2025 Hiep Nguyen</div>
+                <div class="tagline">Vietnamese soul, global impact</div>
+                <div class="version">Est. 1997 | Version 27.0 (and counting!)</div>
+            </div>
+        </div>
+    </footer>
+    
+    <script>
+        // Copy code functionality
+        function copyCode(button) {
+            const codeBlock = button.parentElement;
+            const code = codeBlock.querySelector('code').textContent;
+            
+            navigator.clipboard.writeText(code).then(function() {
+                // Change button text temporarily
+                const originalText = button.textContent;
+                button.textContent = 'Copied!';
+                button.style.background = '#238636';
+                button.style.color = '#ffffff';
+                
+                setTimeout(function() {
+                    button.textContent = originalText;
+                    button.style.background = '#30363d';
+                    button.style.color = '#8b949e';
+                }, 2000);
+            }).catch(function(err) {
+                console.error('Could not copy text: ', err);
+                button.textContent = 'Failed';
+                button.style.background = '#da3633';
+                button.style.color = '#ffffff';
+            });
+        }
+        
+        // Disable syntax highlighting to avoid conflicts
+        // Code blocks will display with basic styling only
+    </script>
+</body>
+</html>

@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reinforcement Learning: Học Tăng Cường từ Lý thuyết đến Thực hành - Blog của Hiệp</title>
+    <meta name="description" content="Hướng dẫn chuyên sâu về Reinforcement Learning - từ khái niệm cơ bản đến các thuật toán Q-learning, DQN, PPO với ví dụ code thực tế sử dụng OpenAI Gym.">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- MathJax for mathematical formulas -->
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            },
+            svg: {
+                fontCache: 'global'
+            }
+        };
+    </script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #1f1f1f;
+            background-image: 
+                radial-gradient(circle at 25% 25%, rgba(255,255,255,0.04) 0%, transparent 50%),
+                radial-gradient(circle at 75% 75%, rgba(255,255,255,0.04) 0%, transparent 50%);
+            color: #ffffff;
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            flex: 1;
+        }
+        
+        /* Navigation */
+        .nav-back {
+            margin-bottom: 40px;
+        }
+        
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: #64ffda;
+            text-decoration: none;
+            font-weight: 500;
+            padding: 10px 20px;
+            border: 1px solid #64ffda;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+            background: rgba(100, 255, 218, 0.1);
+        }
+        
+        .back-button:hover {
+            background: #64ffda;
+            color: #1f1f1f;
+            transform: translateY(-2px);
+        }
+        
+        /* Post Header */
+        .post-header {
+            margin-bottom: 40px;
+            padding-bottom: 30px;
+            border-bottom: 1px solid #233554;
+        }
+        
+        .post-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .post-date {
+            color: #8892b0;
+            font-size: 0.9rem;
+        }
+        
+        .post-category {
+            background: #64ffda;
+            color: #1f1f1f;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        
+        .post-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 20px;
+            line-height: 1.2;
+        }
+        
+        .post-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .post-tag {
+            background: rgba(100, 255, 218, 0.1);
+            color: #64ffda;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            border: 1px solid rgba(100, 255, 218, 0.2);
+        }
+        
+        .post-author {
+            color: #64ffda;
+            font-weight: 500;
+            font-size: 1.1rem;
+        }
+        
+        /* Post Content */
+        .post-content {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            color: #e6e6e6;
+        }
+        
+        .post-content h1, .post-content h2, .post-content h3, .post-content h4, .post-content h5, .post-content h6 {
+            color: #ffffff;
+            margin: 40px 0 20px 0;
+            font-weight: 600;
+        }
+        
+        .post-content h1 {
+            font-size: 2rem;
+        }
+        
+        .post-content h2 {
+            font-size: 1.8rem;
+        }
+        
+        .post-content h3 {
+            font-size: 1.5rem;
+        }
+        
+        .post-content p {
+            margin-bottom: 20px;
+        }
+        
+        .post-content ul, .post-content ol {
+            margin: 20px 0;
+            padding-left: 30px;
+        }
+        
+        .post-content li {
+            margin-bottom: 10px;
+        }
+        
+        .post-content strong {
+            color: #64ffda;
+            font-weight: 600;
+        }
+        
+        .post-content em {
+            color: #8892b0;
+            font-style: italic;
+        }
+        
+        .post-content hr {
+            border: none;
+            border-top: 1px solid #233554;
+            margin: 40px 0;
+        }
+        
+        .post-content blockquote {
+            border-left: 4px solid #64ffda;
+            padding-left: 20px;
+            margin: 20px 0;
+            color: #8892b0;
+            font-style: italic;
+        }
+        
+        /* Math and Image styles */
+        .math-formula {
+            margin: 20px 0;
+            text-align: center;
+            overflow-x: auto;
+        }
+        
+        .math-formula.inline {
+            display: inline;
+            margin: 0 5px;
+        }
+        
+        .post-image {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            margin: 20px 0;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+        
+        .post-image-container {
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        .post-image-caption {
+            font-size: 0.9rem;
+            color: #8892b0;
+            margin-top: 8px;
+            font-style: italic;
+        }
+        
+        .code-block {
+            background: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            padding: 12px;
+            margin: 16px 0;
+            overflow-x: auto;
+            font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', 'Source Code Pro', monospace;
+            font-size: 0.85rem;
+            line-height: 1.4;
+            position: relative;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+        
+        .code-block::before {
+            content: attr(data-language);
+            position: absolute;
+            top: 0;
+            right: 12px;
+            background: #30363d;
+            color: #8b949e;
+            padding: 2px 8px;
+            font-size: 0.75rem;
+            border-radius: 0 0 4px 4px;
+            text-transform: uppercase;
+            font-weight: 500;
+        }
+        
+        .code-block pre {
+            margin: 0;
+            color: #c9d1d9;
+        }
+        
+        .code-block code {
+            color: #c9d1d9;
+        }
+        
+        /* Syntax highlighting colors */
+        .code-block .keyword {
+            color: #ff7b72;
+        }
+        
+        .code-block .string {
+            color: #a5d6ff;
+        }
+        
+        .code-block .comment {
+            color: #8b949e;
+            font-style: italic;
+        }
+        
+        .code-block .function {
+            color: #d2a8ff;
+        }
+        
+        .code-block .number {
+            color: #79c0ff;
+        }
+        
+        .code-block .operator {
+            color: #ff7b72;
+        }
+        
+        /* Inline code */
+        .post-content code:not(.code-block code) {
+            background: rgba(110, 118, 129, 0.4);
+            color: #c9d1d9;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 0.85em;
+            font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', 'Source Code Pro', monospace;
+        }
+        
+        /* Table Styles */
+        .post-content table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 2rem 0;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .post-content thead {
+            background: rgba(100, 255, 218, 0.1);
+        }
+        
+        .post-content th {
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+            color: #64ffda;
+            border-bottom: 2px solid rgba(100, 255, 218, 0.3);
+        }
+        
+        .post-content td {
+            padding: 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            color: #e0e0e0;
+        }
+        
+        .post-content tr:hover {
+            background: rgba(255, 255, 255, 0.02);
+        }
+        
+        .post-content tbody tr:last-child td {
+            border-bottom: none;
+        }
+        
+        /* Copy button for code blocks */
+        .code-block {
+            position: relative;
+        }
+        
+        .copy-button {
+            position: absolute;
+            top: 8px;
+            right: 40px;
+            background: #30363d;
+            color: #8b949e;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+        
+        .code-block:hover .copy-button {
+            opacity: 1;
+        }
+        
+        .copy-button:hover {
+            background: #484f58;
+            color: #c9d1d9;
+        }
+        
+        /* Line numbers for long code blocks */
+        .code-block.long-code {
+            counter-reset: line;
+        }
+        
+        .code-block.long-code pre {
+            display: flex;
+        }
+        
+        .code-block.long-code code {
+            counter-increment: line;
+            display: block;
+            padding-left: 3.5em;
+            position: relative;
+        }
+        
+        .code-block.long-code code::before {
+            content: counter(line);
+            position: absolute;
+            left: 0;
+            width: 2.5em;
+            text-align: right;
+            color: #484f58;
+            font-size: 0.9em;
+            padding-right: 1em;
+            border-right: 1px solid #30363d;
+        }
+        
+        .highlight-box {
+            background: rgba(100, 255, 218, 0.1);
+            border-left: 4px solid #64ffda;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .warning-box {
+            background: rgba(255, 193, 7, 0.1);
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .info-box {
+            background: rgba(13, 202, 240, 0.1);
+            border-left: 4px solid #0dcaf0;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        /* Footer */
+        .footer {
+            background: #1f1f1f;
+            background-image: 
+                radial-gradient(circle at 25% 25%, rgba(255,255,255,0.04) 0%, transparent 50%),
+                radial-gradient(circle at 75% 75%, rgba(255,255,255,0.04) 0%, transparent 50%);
+            border-top: 1px solid rgba(255, 255, 255, 0.03);
+            padding: 40px 0;
+            margin-top: 60px;
+            text-align: center;
+            position: relative;
+            width: 100vw;
+            margin-left: calc(-50vw + 50%);
+        }
+        
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 8vw;
+            text-align: center;
+        }
+        
+        .footer-text {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            align-items: center;
+        }
+        
+        .copyright {
+            font-size: 18px;
+            font-weight: 600;
+            color: #ffffff;
+            letter-spacing: 0.5px;
+        }
+        
+        .tagline {
+            font-size: 16px;
+            color: #888;
+            font-style: italic;
+            margin: 4px 0;
+        }
+        
+        .version {
+            font-size: 14px;
+            color: #666;
+            font-family: 'Courier New', monospace;
+            letter-spacing: 0.3px;
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px 15px;
+            }
+            
+            .post-title {
+                font-size: 2rem;
+            }
+            
+            .post-content {
+                font-size: 1rem;
+            }
+            
+            .post-content h1 {
+                font-size: 1.8rem;
+            }
+            
+            .post-content h2 {
+                font-size: 1.6rem;
+            }
+            
+            .post-content h3 {
+                font-size: 1.4rem;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .post-title {
+                font-size: 1.8rem;
+            }
+            
+            .post-content {
+                font-size: 0.95rem;
+            }
+            
+            .post-content h1 {
+                font-size: 1.6rem;
+            }
+            
+            .post-content h2 {
+                font-size: 1.4rem;
+            }
+            
+            .post-content h3 {
+                font-size: 1.2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Navigation -->
+        <nav class="nav-back">
+            <a href="../index.html" class="back-button">
+                ← Quay lại trang chủ
+            </a>
+        </nav>
+        
+        <!-- Post Header -->
+        <header class="post-header">
+            <div class="post-meta">
+                <span class="post-date">2025-01-27</span>
+                <span class="post-category">TIL</span>
+            </div>
+            
+            <h1 class="post-title">Reinforcement Learning: Học Tăng Cường từ Lý thuyết đến Thực hành</h1>
+            
+            <div class="post-tags">
+                <span class="post-tag">reinforcement learning</span><span class="post-tag">rl</span><span class="post-tag">q-learning</span><span class="post-tag">dqn</span><span class="post-tag">ppo</span><span class="post-tag">openai gym</span><span class="post-tag">stable baselines3</span><span class="post-tag">machine learning</span><span class="post-tag">python</span>
+            </div>
+            
+            <div class="post-author">Bởi Huy Hiep Nguyen</div>
+        </header>
+        
+        <!-- Post Content -->
+        <article class="post-content">
+            <h1 id="reinforcement-learning-hoc-tang-cuong-tu-ly-thuyet-en-thuc-hanh">Reinforcement Learning: Học Tăng Cường từ Lý thuyết đến Thực hành</h1>
+<p>Bạn đã từng tự hỏi làm thế nào mà các siêu AI có thể đánh bại kiện tướng cờ vây, điều khiển robot hay tự động lái xe? Câu trả lời nằm ở <strong>Học Tăng Cường (Reinforcement Learning - RL)</strong>. Khác với học có giám sát (supervised learning) chỉ học từ các ví dụ được gán nhãn sẵn, RL học thông qua quá trình thử và sai, nhận phần thưởng hoặc hình phạt từ môi trường.</p>
+<p>Bài viết này sẽ đưa bạn đi từ những khái niệm cốt lõi đến các thuật toán cơ bản, cùng với ví dụ minh họa bằng code để giúp bạn bắt đầu một cách bài bản.</p>
+<h2 id="1-cac-khai-niem-co-ban-cua-hoc-tang-cuong"><strong>1. Các Khái niệm Cơ bản của Học Tăng cường</strong></h2>
+<p>Hãy tưởng tượng bạn đang huấn luyện một chú chó. Quá trình đó chính là RL.</p>
+<ul>
+<li><strong>Agent (Tác nhân):</strong> Chú chó - thực thể đưa ra hành động. Trong ML, agent là mô hình mà chúng ta huấn luyện.</li>
+<li><strong>Environment (Môi trường):</strong> Thế giới xung quanh chú chó - nơi nó tương tác.</li>
+<li><strong>State (Trạng thái):</strong> Tình huống hiện tại của môi trường. Ví dụ: Chú chó đang ngồi.</li>
+<li><strong>Action (Hành động):</strong> Các lựa chọn mà agent có thể thực hiện. Ví dụ: Chú chó ngồi xuống, đứng lên, sủa.</li>
+<li><strong>Reward (Phần thưởng):</strong> Phản hồi từ môi trường cho mỗi hành động. Phần thưởng có thể là dương (cho chú chó một miếng bánh khi ngồi) hoặc âm (la rầy khi sủa bậy). Mục tiêu của agent là tối đa hóa tổng phần thưởng nhận được theo thời gian.</li>
+<p></ul></p>
+<p>Quy trình diễn ra như sau: Agent quan sát <strong>trạng thái</strong> hiện tại, thực hiện một <strong>hành động</strong>, môi trường chuyển sang <strong>trạng thái</strong> mới và trả về một <strong>phần thưởng</strong>. Vòng lặp này cứ tiếp diễn cho đến khi kết thúc một "vòng chơi" (episode).</p>
+<h2 id="2-cac-thuat-toan-rl-co-ban"><strong>2. Các Thuật toán RL Cơ bản</strong></h2>
+<p>Các thuật toán RL được chia thành ba nhóm chính, mỗi nhóm có cách tiếp cận khác nhau để giải quyết bài toán.</p>
+<h3 id="a-thuat-toan-dua-tren-gia-tri-value-based"><strong>a. Thuật toán Dựa trên Giá trị (Value-based)</strong></h3>
+<p>Các thuật toán này học một hàm giá trị để ước tính mức độ "tốt" của một trạng thái hoặc một cặp trạng thái-hành động. Agent sau đó chọn hành động có giá trị cao nhất.</p>
+<ul>
+<li>
+<p><strong>Q-learning:</strong> Một trong những thuật toán RL kinh điển. Nó học một bảng Q (Q-table), trong đó mỗi ô <code>Q(state, action)</code> chứa giá trị ước tính cho việc thực hiện một hành động cụ thể ở một trạng thái nhất định.</p>
+<p></li></p>
+<li>
+<p><strong>Thách thức:</strong> Bảng Q trở nên quá lớn khi không gian trạng thái và hành động mở rộng.</p>
+<p></li></p>
+<li>
+<p><strong>Deep Q Network (DQN):</strong> Một bước đột phá, kết hợp Q-learning với học sâu (Deep Learning). Thay vì sử dụng bảng, DQN sử dụng một mạng nơ-ron để xấp xỉ hàm Q, giúp giải quyết các bài toán có không gian trạng thái cực lớn.</p>
+<p></li></p>
+<p></ul></p>
+<h3 id="b-thuat-toan-dua-tren-chinh-sach-policy-based"><strong>b. Thuật toán Dựa trên Chính sách (Policy-based)</strong></h3>
+<p>Các thuật toán này học trực tiếp một chính sách (policy) - ánh xạ từ trạng thái đến hành động. Chính sách có thể là một hàm xác suất, cho biết xác suất thực hiện mỗi hành động ở một trạng thái cụ thể.</p>
+<ul>
+<li><strong>REINFORCE:</strong> Một thuật toán dựa trên gradient, sử dụng đạo hàm để cập nhật chính sách. Mục tiêu là tăng xác suất của các hành động mang lại phần thưởng cao và giảm xác suất của các hành động mang lại phần thưởng thấp.</li>
+<p></ul></p>
+<h3 id="c-phuong-phap-actor-critic"><strong>c. Phương pháp Actor-Critic</strong></h3>
+<p>Kết hợp ưu điểm của cả hai loại trên.</p>
+<ul>
+<li><strong>Actor:</strong> Một mạng nơ-ron học chính sách (policy-based) để quyết định hành động nào sẽ được thực hiện.</li>
+<li><strong>Critic:</strong> Một mạng nơ-ron học hàm giá trị (value-based) để đánh giá hành động của actor.</li>
+<p></ul></p>
+<p>Critic sẽ cung cấp phản hồi cho actor, giúp actor học chính sách tốt hơn. Đây là nền tảng của nhiều thuật toán RL hiện đại.</p>
+<h2 id="3-minh-hoa-voi-openai-gym-va-code-python"><strong>3. Minh họa với OpenAI Gym và Code Python</strong></h2>
+<p><strong>OpenAI Gym</strong> là một thư viện tuyệt vời để thử nghiệm các thuật toán RL. Chúng ta sẽ sử dụng môi trường <code>CartPole-v1</code> và thư viện <strong>Stable Baselines3</strong> để huấn luyện một agent đơn giản.</p>
+<div class="code-block long-code" data-language="python"><button class="copy-button" onclick="copyCode(this)">Copy</button><pre><code>import gym
+from stable_baselines3 import PPO
+from stable_baselines3.common.env_util import make_vec_env
+
+# 1. Tạo môi trường
+# CartPole-v1: Mục tiêu là giữ một cây sào thẳng đứng trên một toa xe di chuyển.
+env_id = &quot;CartPole-v1&quot;
+env = make_vec_env(env_id, n_envs=1)
+
+# 2. Chọn và huấn luyện thuật toán
+# PPO (Proximal Policy Optimization) là một thuật toán Actor-Critic hiệu quả.
+model = PPO(&quot;MlpPolicy&quot;, env, verbose=1)
+model.learn(total_timesteps=10000)
+
+# 3. Kiểm tra agent đã huấn luyện
+print(&quot;Bắt đầu kiểm tra agent đã học:&quot;)
+obs = env.reset()
+for _ in range(1000):
+    action, _states = model.predict(obs, deterministic=True)
+    obs, rewards, dones, info = env.step(action)
+    env.render()
+    if dones:
+        print(&quot;Agent đã hoàn thành một vòng chơi!&quot;)
+        break
+
+env.close()
+<p></code></pre></div></p>
+<p><strong>Giải thích code:</strong></p>
+<ul>
+<li><strong><code>make_vec_env</code>:</strong> Tạo môi trường CartPole, nơi agent sẽ học cách cân bằng cây sào.</li>
+<li><strong><code>PPO("MlpPolicy", env)</code>:</strong> Khởi tạo mô hình PPO với một chính sách dạng mạng nơ-ron nhiều lớp (MlpPolicy).</li>
+<li><strong><code>model.learn()</code>:</strong> Huấn luyện mô hình trong 10.000 bước. Trong quá trình này, agent sẽ thử và sai, nhận phần thưởng (khi cây sào được giữ thẳng) và cập nhật chính sách của mình.</li>
+<li><strong><code>model.predict()</code>:</strong> Sử dụng mô hình đã huấn luyện để đưa ra hành động dự đoán.</li>
+<p></ul></p>
+<h2 id="4-thach-thuc-va-ung-dung-thuc-te"><strong>4. Thách thức và Ứng dụng Thực tế</strong></h2>
+<h3 id="a-thach-thuc"><strong>a. Thách thức</strong></h3>
+<ul>
+<li><strong>Exploration vs. Exploitation (Khám phá vs. Khai thác):</strong> Agent cần phải cân bằng giữa việc khám phá các hành động mới để tìm ra chiến lược tốt hơn và khai thác các hành động đã biết để nhận phần thưởng cao.</li>
+<li><strong>Sample Efficiency:</strong> RL thường đòi hỏi một lượng lớn dữ liệu tương tác để học, điều này có thể rất tốn kém trong các môi trường thực tế như robot.</li>
+<li><strong>Stability:</strong> Việc huấn luyện mạng nơ-ron trong RL có thể không ổn định, dễ bị phân kỳ.</li>
+<p></ul></p>
+<h3 id="b-ung-dung-thuc-te"><strong>b. Ứng dụng Thực tế</strong></h3>
+<ul>
+<li><strong>Game AI:</strong> Nổi tiếng nhất là các hệ thống AI chơi game Atari, cờ vây (AlphaGo) và cờ vua, vượt trội hơn cả con người.</li>
+<li><strong>Robot và Tự động hóa:</strong> Huấn luyện robot thực hiện các nhiệm vụ phức tạp như gắp đồ vật, đi lại.</li>
+<li><strong>Hệ thống Khuyến nghị:</strong> Các nền tảng như Netflix, Spotify sử dụng RL để tối ưu hóa việc đề xuất nội dung, tối đa hóa thời gian người dùng tương tác.</li>
+<li><strong>Tối ưu hóa Vận hành:</strong> Tối ưu hóa chuỗi cung ứng, điều khiển giao thông, quản lý tài nguyên trong các trung tâm dữ liệu.</li>
+<p></ul></p>
+<h2 id="ket-luan"><strong>Kết luận</strong></h2>
+<p>Học Tăng Cường là một lĩnh vực đầy tiềm năng, mở ra khả năng tạo ra các hệ thống AI có khả năng tự học và thích nghi. Bằng cách hiểu các khái niệm cốt lõi và các thuật toán như Q-learning, DQN, và PPO, bạn đã có thể bắt đầu xây dựng các agent thông minh của riêng mình. </p>
+        </article>
+    </div>
+    
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-text">
+                <div class="copyright">© 2025 Hiep Nguyen</div>
+                <div class="tagline">Vietnamese soul, global impact</div>
+                <div class="version">Est. 1997 | Version 27.0 (and counting!)</div>
+            </div>
+        </div>
+    </footer>
+    
+    <script>
+        // Copy code functionality
+        function copyCode(button) {
+            const codeBlock = button.parentElement;
+            const code = codeBlock.querySelector('code').textContent;
+            
+            navigator.clipboard.writeText(code).then(function() {
+                // Change button text temporarily
+                const originalText = button.textContent;
+                button.textContent = 'Copied!';
+                button.style.background = '#238636';
+                button.style.color = '#ffffff';
+                
+                setTimeout(function() {
+                    button.textContent = originalText;
+                    button.style.background = '#30363d';
+                    button.style.color = '#8b949e';
+                }, 2000);
+            }).catch(function(err) {
+                console.error('Could not copy text: ', err);
+                button.textContent = 'Failed';
+                button.style.background = '#da3633';
+                button.style.color = '#ffffff';
+            });
+        }
+        
+        // Disable syntax highlighting to avoid conflicts
+        // Code blocks will display with basic styling only
+    </script>
+</body>
+</html>
